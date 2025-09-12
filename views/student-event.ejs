@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Event Requests</title>
+    <!-- Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex flex-col sm:flex-row items-center justify-between mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-4 sm:mb-0">Event Requests</h1>
+            <a href="/student/eventrequest" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors duration-300 transform hover:scale-105">
+                <button type="button">Request an Event</button>
+            </a>
+        </header>
+
+        <main class="space-y-6">
+            <% if (events && events.length > 0) { %>
+                <% events.forEach(event => { %>
+                    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                            <h2 class="text-2xl font-bold text-gray-900 leading-tight mb-2 sm:mb-0"><%= event.title %></h2>
+                            <span class="inline-block px-3 py-1 text-sm font-semibold rounded-full <%= event.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
+                                <%= event.status %>
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-600 mt-2 mb-4"><%= event.description %></p>
+                        
+                        <div class="flex items-center text-sm text-gray-500 space-x-4 mb-4">
+                            <p>Requested By: <span class="font-medium text-gray-700"><%= event.requestedBy ? event.requestedBy.fullname : "Unknown" %></span></p>
+                            <div class="flex items-center space-x-1">
+                                <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path></svg>
+                                <span class="font-medium text-gray-700"><%= event.upvotes %> Upvotes</span>
+                            </div>
+                        </div>
+
+                        <% 
+                            const requestedById = event.requestedBy && (event.requestedBy._id ? event.requestedBy._id.toString() : event.requestedBy.toString());
+                            const isAuthor = requestedById === currentUser._id.toString();
+                            const hasUpvoted = event.upvotedBy && event.upvotedBy.some(u => u.toString() === currentUser._id.toString());
+                        %>
+
+                        <div class="flex items-center mt-4">
+                            <% if (isAuthor) { %>
+                                <p class="text-green-600 font-semibold">You created this event</p>
+                            <% } else if (!hasUpvoted) { %>
+                                <form action="/student/<%= event._id %>/upvote" method="POST">
+                                    <button type="submit" class="bg-blue-100 text-blue-600 font-semibold py-2 px-4 rounded-xl hover:bg-blue-200 transition-colors duration-200">
+                                        Upvote
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <div class="flex items-center space-x-2 text-green-600 font-semibold">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                    <span>You already upvoted</span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="bg-white p-6 rounded-2xl shadow-md text-center text-gray-500">
+                    <p>No event requests found.</p>
+                </div>
+            <% } %>
+        </main>
+
+        <div class="mt-8 text-center">
+            <a href="/student/dashboard" class="text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium">
+                Back to Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

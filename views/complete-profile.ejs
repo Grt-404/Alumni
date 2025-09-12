@@ -1,221 +1,112 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Complete Your Profile — AURA</title>
-    <meta name="description" content="Complete your profile on the AURA alumni nexus."/>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='100%25' stop-color='%23a16207'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-size='32' text-anchor='middle' fill='white' font-family='Arial Black'%3EA%3C/text%3E%3C/svg%3E" />
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
-
-    <!-- Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#f8f5f2',
-                        foreground: '#1f1c18',
-                        card: '#ffffff',
-                        'card-foreground': '#1f1c18',
-                        primary: '#a16207',
-                        'primary-foreground': '#ffffff',
-                        secondary: '#b99553',
-                        accent: '#34d399',
-                        border: 'rgba(0, 0, 0, 0.08)',
-                        ring: 'rgba(161, 98, 7, 0.4)'
-                    },
-                    fontFamily: {
-                        sans: ['Lato', 'sans-serif'],
-                        serif: ['Lora', 'serif']
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
-                        'lift': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                    },
-                    keyframes: {
-                        'fade-in-up': { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        'backgroundShift': {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' },
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-                        'backgroundShift': 'backgroundShift 25s ease infinite',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        html { scroll-behavior: smooth; }
-        body {
-            background: linear-gradient(-45deg, #f8f5f2, #fffefc, #fef8f0, #f8f5f2);
-            background-size: 400% 400%;
-            animation: backgroundShift 25s ease infinite;
-        }
-        .glass-header {
-            background: rgba(255, 253, 250, 0.85);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--tw-color-border);
-        }
-        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.6; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Complete Your Profile</title>
+  <link rel="stylesheet" href="/css/style.css"> <!-- your CSS -->
+  <style>
+    .container { max-width: 600px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    form div { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input, textarea, button { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+    button { background: #2563eb; color: white; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+    button:hover { background: #1d4ed8; }
+    .dp-wrapper { text-align: center; margin-bottom: 15px; }
+    .dp-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 2px solid #ddd; }
+  </style>
 </head>
-<body class="bg-background font-sans antialiased text-foreground">
-    <canvas id="particle-canvas"></canvas>
+<body style="background:#f9fafb; font-family: 'Inter', sans-serif;">
+  <div class="container">
+    <h1 style="text-align:center; color:#111827; margin-bottom:20px;">Complete Your Profile</h1>
 
-    <header class="fixed top-0 inset-x-0 z-40 glass-header">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="relative flex h-16 items-center justify-center">
-                 <div class="absolute left-0">
-                     <a href="/alumni/dashboard" class="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors font-semibold">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <h1 class="text-3xl font-serif font-bold text-primary">Aura</h1>
-                </div>
-            </div>
-        </div>
-    </header>
+    <form action="/alumni/profile" method="POST" enctype="multipart/form-data">
+      
+      <!-- Profile Picture Preview -->
+      <div class="dp-wrapper">
+        <img 
+          src="<%= alumni?.image ? 'data:image/jpeg;base64,' + alumni.image.toString('base64') : '/images/uploads/default.png' %>" 
+          alt="Profile Picture" 
+          class="dp-preview"
+          id="dpPreview"
+        />
+      </div>
+      
+      <!-- File Upload -->
+      <div>
+        <label for="image">Profile Picture</label>
+        <input type="file" name="image" id="image" accept="image/*" onchange="previewImage(event)">
+      </div>
 
-    <main class="min-h-screen flex items-center justify-center pt-24 pb-12 px-4">
-        <div class="w-full max-w-3xl bg-card rounded-xl shadow-lift p-8 md:p-12 animate-fade-in-up">
-            <div class="text-center">
-                <h2 class="text-4xl font-serif font-bold text-foreground">Complete Your Profile</h2>
-                <p class="text-gray-500 mt-2">Fill in your details to connect with the network.</p>
-            </div>
+      <!-- Name -->
+      <div>
+        <label for="name">Full Name</label>
+        <input type="text" name="name" id="name" value="<%= alumni?.name || '' %>" required>
+      </div>
 
-            <form action="/alumni/profile" method="POST" enctype="multipart/form-data" class="mt-10 space-y-8">
-                
-                <!-- Profile Picture Section -->
-                <div class="flex flex-col items-center space-y-4">
-                     <img 
-                        src="<%= alumni?.image ? 'data:image/jpeg;base64,' + alumni.image.toString('base64') : 'https://placehold.co/128x128/f8f5f2/a16207?text=A' %>" 
-                        alt="Profile Picture" 
-                        class="h-32 w-32 rounded-full object-cover ring-4 ring-primary/20 shadow-soft"
-                        id="dpPreview"
-                    />
-                    <div>
-                        <label for="image" class="cursor-pointer text-sm font-semibold text-primary hover:underline">
-                            Upload a Photo
-                        </label>
-                        <input type="file" name="image" id="image" accept="image/*" class="hidden" onchange="previewImage(event)">
-                    </div>
-                </div>
+      <!-- Email (read-only) -->
+      <div>
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" value="<%= alumni?.email || '' %>" readonly>
+      </div>
 
-                <!-- Personal & Professional Info -->
-                <div class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div>
-                            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                            <input type="text" name="name" id="name" value="<%= alumni?.name || '' %>" required class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <input type="email" name="email" id="email" value="<%= alumni?.email || '' %>" readonly class="w-full px-4 py-2 border border-border rounded-lg bg-gray-100 cursor-not-allowed" />
-                        </div>
-                    </div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div>
-                            <label for="graduationYear" class="block text-sm font-semibold text-gray-700 mb-2">Graduation Year</label>
-                            <input type="number" name="graduationYear" id="graduationYear" value="<%= alumni?.graduationYear || '' %>" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                        </div>
-                        <div>
-                           <label for="branch" class="block text-sm font-semibold text-gray-700 mb-2">Branch</label>
-                           <input type="text" name="branch" id="branch" value="<%= alumni?.branch || '' %>" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                        </div>
-                    </div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div>
-                            <label for="currentCompany" class="block text-sm font-semibold text-gray-700 mb-2">Current Company</label>
-                            <input type="text" name="currentCompany" id="currentCompany" value="<%= alumni?.currentCompany || '' %>" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                        </div>
-                        <div>
-                           <label for="designation" class="block text-sm font-semibold text-gray-700 mb-2">Designation</label>
-                           <input type="text" name="designation" id="designation" value="<%= alumni?.designation || '' %>" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                        </div>
-                    </div>
-                </div>
+      <!-- Graduation Year -->
+      <div>
+        <label for="graduationYear">Graduation Year</label>
+        <input type="number" name="graduationYear" id="graduationYear" value="<%= alumni?.graduationYear || '' %>">
+      </div>
 
-                <!-- Bio & Socials -->
-                <div class="space-y-6">
-                    <div>
-                        <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                        <input type="text" name="location" id="location" value="<%= alumni?.location || '' %>" placeholder="e.g., San Francisco, CA" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                    </div>
-                    <div>
-                        <label for="bio" class="block text-sm font-semibold text-gray-700 mb-2">Short Bio</label>
-                        <textarea name="bio" id="bio" rows="4" maxlength="500" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" placeholder="Tell us a little about yourself..."><%= alumni?.bio || '' %></textarea>
-                    </div>
-                    <div>
-                        <label for="linkedin" class="block text-sm font-semibold text-gray-700 mb-2">LinkedIn Profile</label>
-                        <input type="url" name="linkedin" id="linkedin" placeholder="https://linkedin.com/in/username" value="<%= alumni?.linkedin || '' %>" class="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
-                    </div>
-                </div>
+      <!-- Branch -->
+      <div>
+        <label for="branch">Branch</label>
+        <input type="text" name="branch" id="branch" value="<%= alumni?.branch || '' %>">
+      </div>
 
-                <!-- Buttons -->
-                <div class="pt-6 border-t border-border flex justify-between items-center">
-                    <a href="/alumni/dashboard" class="text-gray-600 hover:text-primary transition-colors font-semibold">Cancel</a>
-                    <button type="submit" class="px-8 py-3 bg-primary text-primary-foreground rounded-lg shadow-soft hover:bg-primary/90 transition-all duration-300 font-bold hover:shadow-lift">Save Profile</button>
-                </div>
-            </form>
-        </div>
-    </main>
+      <!-- Current Company -->
+      <div>
+        <label for="currentCompany">Current Company</label>
+        <input type="text" name="currentCompany" id="currentCompany" value="<%= alumni?.currentCompany || '' %>">
+      </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            
-            // Particle Animation Script
-            const canvas = document.getElementById('particle-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            let particles = [];
-            const particleCount = 50;
-            const particleColor = 'rgba(161, 98, 7, 0.5)';
+      <!-- Designation -->
+      <div>
+        <label for="designation">Designation</label>
+        <input type="text" name="designation" id="designation" value="<%= alumni?.designation || '' %>">
+      </div>
 
-            class Particle {
-                constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
-                update() { this.x += this.speedX; this.y += this.speedY; if (this.size > 0.1) this.size -= 0.01; }
-                draw() { ctx.fillStyle = particleColor; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-            }
-            function initParticles() {
-                for (let i = 0; i < particleCount; i++) { particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height)); }
-            }
-            function animateParticles() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = 0; i < particles.length; i++) {
-                    particles[i].update(); particles[i].draw();
-                    if (particles[i].size <= 0.1) { particles.splice(i, 1); i--; particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height)); }
-                }
-                requestAnimationFrame(animateParticles);
-            }
-            initParticles();
-            animateParticles();
-            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; particles = []; initParticles(); });
-        });
+      <!-- Location -->
+      <div>
+        <label for="location">Location</label>
+        <input type="text" name="location" id="location" value="<%= alumni?.location || '' %>">
+      </div>
 
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const output = document.getElementById('dpPreview');
-                output.src = reader.result;
-            };
-            reader.readAsDataURL(event.target.files[0]);
-        }
-    </script>
+      <!-- Bio -->
+      <div>
+        <label for="bio">Short Bio</label>
+        <textarea name="bio" id="bio" rows="4" maxlength="500"><%= alumni?.bio || '' %></textarea>
+      </div>
+
+      <!-- LinkedIn -->
+      <div>
+        <label for="linkedin">LinkedIn Profile</label>
+        <input type="url" name="linkedin" id="linkedin" placeholder="https://linkedin.com/in/username" value="<%= alumni?.linkedin || '' %>">
+      </div>
+
+      <!-- Submit -->
+      <div>
+        <button type="submit">Save Profile</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        const output = document.getElementById('dpPreview');
+        output.src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  </script>
 </body>
 </html>

@@ -1,208 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Make a Donation — AURA</title>
-    <meta name="description" content="Support the next generation by donating through the AURA alumni nexus."/>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='100%25' stop-color='%23a16207'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-size='32' text-anchor='middle' fill='white' font-family='Arial Black'%3EA%3C/text%3E%3C/svg%3E" />
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
-
-    <!-- Libraries -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a Donation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#f8f5f2',
-                        foreground: '#1f1c18',
-                        card: '#ffffff',
-                        'card-foreground': '#1f1c18',
-                        primary: '#a16207',
-                        'primary-foreground': '#ffffff',
-                        secondary: '#b99553',
-                        accent: '#34d399',
-                        border: 'rgba(0, 0, 0, 0.08)',
-                        ring: 'rgba(161, 98, 7, 0.4)'
-                    },
-                    fontFamily: {
-                        sans: ['Lato', 'sans-serif'],
-                        serif: ['Lora', 'serif']
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
-                        'lift': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                    },
-                    keyframes: {
-                        'fade-in-up': { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        'backgroundShift': {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' },
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-                        'backgroundShift': 'backgroundShift 25s ease infinite',
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        html { scroll-behavior: smooth; }
-        body {
-            background: linear-gradient(-45deg, #f8f5f2, #fffefc, #fef8f0, #f8f5f2);
-            background-size: 400% 400%;
-            animation: backgroundShift 25s ease infinite;
-        }
-        .glass-header {
-            background: rgba(255, 253, 250, 0.85);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--tw-color-border);
-        }
-        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.6; }
-        .amount-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        .amount-btn.selected {
-            background-color: var(--tw-color-primary);
-            color: var(--tw-color-primary-foreground);
-            border-color: var(--tw-color-primary);
-            transform: scale(1.05);
-        }
+        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     </style>
 </head>
-<body class="bg-background font-sans antialiased text-foreground">
-    <canvas id="particle-canvas"></canvas>
+<body class="bg-gray-100 font-sans">
 
-    <header class="fixed top-0 inset-x-0 z-40 glass-header">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="relative flex h-16 items-center justify-center">
-                 <div class="absolute left-0">
-                     <a href="/alumni/dashboard" class="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors font-semibold">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <h1 class="text-3xl font-serif font-bold text-primary">Aura</h1>
-                </div>
-            </div>
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-indigo-600">Alumni Network</h1>
+            <a href="/dashboard" class="flex items-center space-x-2 text-sm font-semibold py-2 px-4 rounded-lg transition-all duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Back to Dashboard</span>
+            </a>
         </div>
     </header>
 
-    <main class="min-h-screen flex items-center justify-center pt-24 pb-12 px-4">
-        <div class="w-full max-w-2xl bg-card rounded-xl shadow-lift p-8 md:p-12 animate-fade-in-up">
-            <div class="text-center">
-                 <div class="mx-auto mb-4 bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center">
-                    <i data-lucide="gift" class="w-8 h-8 text-primary"></i>
+    <main class="flex items-center justify-center min-h-[calc(100vh-150px)]">
+        <div class="text-center p-8">
+            <div class="bg-white p-10 rounded-2xl shadow-lg max-w-lg mx-auto">
+                <div class="mx-auto mb-6 bg-green-100 rounded-full w-20 h-20 flex items-center justify-center">
+                    <i data-lucide="gift" class="w-12 h-12 text-green-600"></i>
                 </div>
-                <h2 class="text-4xl font-serif font-bold text-foreground">Make a Contribution</h2>
-                <p class="text-gray-500 mt-2">Your generosity fuels scholarships and opportunities for the next generation.</p>
-            </div>
-            
-            <form action="/alumni/dashboard" method="POST" class="mt-10 space-y-8">
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-3 text-center">Choose an amount</label>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="amount-options">
-                        <button type="button" data-amount="25" class="amount-btn w-full py-3 border border-border rounded-lg font-semibold hover:border-primary">₹2,500</button>
-                        <button type="button" data-amount="50" class="amount-btn w-full py-3 border border-border rounded-lg font-semibold hover:border-primary selected">₹5,000</button>
-                        <button type="button" data-amount="100" class="amount-btn w-full py-3 border border-border rounded-lg font-semibold hover:border-primary">₹10,000</button>
-                        <button type="button" data-amount="custom" class="amount-btn w-full py-3 border border-border rounded-lg font-semibold hover:border-primary">Custom</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label for="donation-amount" class="sr-only">Custom Donation Amount</label>
+                <h2 class="text-3xl font-extrabold text-gray-900">Support the Next Generation</h2>
+                <p class="text-gray-600 mt-3 mb-8">Your contribution empowers students to achieve their dreams. Every donation, big or small, makes a significant impact on their educational journey.</p>
+                
+                <div class="mt-8">
+                    <label for="donation-amount" class="sr-only">Donation Amount</label>
                     <div class="relative">
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <span class="text-gray-500 text-2xl font-bold">₹</span>
+                            <span class="text-gray-500 text-2xl font-bold">$</span>
                         </div>
                         <input 
                             type="number" 
                             name="donation-amount" 
                             id="donation-amount"
-                            class="w-full text-center text-3xl font-bold h-20 pl-12 pr-4 text-gray-800 border-2 border-border rounded-xl focus:ring-primary focus:border-primary transition"
-                            value="5000"
+                            class="w-full text-center text-3xl font-bold h-20 pl-12 pr-4 text-gray-800 border-2 border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="50.00"
                         />
                     </div>
                 </div>
 
-                 <div class="pt-6 border-t border-border flex justify-center items-center">
-                    <button type="submit" class="w-full max-w-xs px-8 py-4 bg-primary text-primary-foreground rounded-lg shadow-soft hover:bg-primary/90 transition-all duration-300 font-bold hover:shadow-lift text-lg flex items-center justify-center gap-3">
-                        <i data-lucide="credit-card" class="w-6 h-6"></i>
-                        Proceed to Payment
-                    </button>
-                </div>
-            </form>
+                <button class="mt-8 w-full flex items-center justify-center space-x-3 text-lg font-bold py-4 px-6 rounded-xl transition-all duration-300 bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg">
+                    <i data-lucide="credit-card" class="w-6 h-6"></i>
+                    <span>Proceed to Payment</span>
+                </button>
+            </div>
         </div>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            
-            const amountOptions = document.getElementById('amount-options');
-            const donationInput = document.getElementById('donation-amount');
-
-            amountOptions.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-
-                document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
-
-                const amount = button.dataset.amount;
-                if (amount && amount !== 'custom') {
-                    donationInput.value = parseInt(amount) * 100;
-                } else {
-                    donationInput.focus();
-                }
-            });
-
-            donationInput.addEventListener('input', () => {
-                document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
-                const customBtn = document.querySelector('button[data-amount="custom"]');
-                if (customBtn) customBtn.classList.add('selected');
-            });
-            
-            // Particle Animation Script
-            const canvas = document.getElementById('particle-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            let particles = [];
-            const particleCount = 50;
-            const particleColor = 'rgba(161, 98, 7, 0.5)';
-
-            class Particle {
-                constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; }
-                update() { this.x += this.speedX; this.y += this.speedY; if (this.size > 0.1) this.size -= 0.01; }
-                draw() { ctx.fillStyle = particleColor; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-            }
-            function initParticles() {
-                for (let i = 0; i < particleCount; i++) { particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height)); }
-            }
-            function animateParticles() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = 0; i < particles.length; i++) {
-                    particles[i].update(); particles[i].draw();
-                    if (particles[i].size <= 0.1) { particles.splice(i, 1); i--; particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height)); }
-                }
-                requestAnimationFrame(animateParticles);
-            }
-            initParticles();
-            animateParticles();
-            window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; particles = []; initParticles(); });
-        });
+        lucide.createIcons();
     </script>
 </body>
 </html>

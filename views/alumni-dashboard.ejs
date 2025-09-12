@@ -1,351 +1,198 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AURA — The Alumni Nexus</title>
-    <meta name="description" content="AURA is a world-class alumni nexus for elite networking, career acceleration, and community impact."/>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='100%25' stop-color='%23a16207'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-size='32' text-anchor='middle' fill='white' font-family='Arial Black'%3EA%3C/text%3E%3C/svg%3E" />
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:wght@600;700&display=swap" rel="stylesheet">
-
-    <!-- Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#f8f5f2', // Soft, classy cream
-                        foreground: '#1f1c18', // Deep charcoal for text
-                        card: '#ffffff',
-                        'card-foreground': '#1f1c18',
-                        primary: '#a16207', // Refined, burnished gold
-                        'primary-foreground': '#ffffff',
-                        secondary: '#b99553', // Lighter, elegant gold
-                        accent: '#34d399', // A gentle mint for highlights
-                        border: 'rgba(0, 0, 0, 0.08)',
-                        ring: 'rgba(161, 98, 7, 0.4)'
-                    },
-                    fontFamily: {
-                        sans: ['Lato', 'sans-serif'],
-                        serif: ['Lora', 'serif']
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
-                        'lift': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
-                        'glow-inner': 'inset 0 2px 4px 0 rgba(161, 98, 7, 0.05)'
-                    },
-                    keyframes: {
-                        'fade-in-up': { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
-                        'backgroundShift': {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' },
-                        }
-                    },
-                    animation: {
-                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-                        'backgroundShift': 'backgroundShift 25s ease infinite',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        html { scroll-behavior: smooth; }
-        body {
-            background: linear-gradient(-45deg, #f8f5f2, #fffefc, #fef8f0, #f8f5f2);
-            background-size: 400% 400%;
-            animation: backgroundShift 25s ease infinite;
-        }
-        .glass-header {
-            background: rgba(255, 253, 250, 0.85);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--tw-color-border);
-        }
-        #particle-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.6;
-        }
-        .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--tw-shadow-lift);
-        }
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            color: #57534e; /* Stone 600 */
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .nav-link:hover, .nav-link.active {
-            background-color: rgba(161, 98, 7, 0.1);
-            color: var(--tw-color-primary);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumni Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  </style>
 </head>
-<body class="bg-background font-sans antialiased text-foreground">
-    <canvas id="particle-canvas"></canvas>
+<body class="bg-gray-100">
 
-    <header class="fixed top-0 inset-x-0 z-40 glass-header">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="relative flex h-16 items-center justify-center">
-                <div class="absolute left-0 flex items-center">
-                    <div class="relative hidden md:block">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"></i>
-                        <input type="text" placeholder="Search..." class="w-64 rounded-md border border-border bg-white/50 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-ring focus:outline-none">
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <h1 class="text-3xl font-serif font-bold text-primary">Aura</h1>
-                </div>
-                <div class="absolute right-0 flex items-center">
-                    <a href="/logout" class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft">
-                        Sign Out
-                    </a>
-                </div>
-            </div>
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-indigo-600">Alumni Network</h1>
+      <a href="/logout" 
+         class="flex items-center space-x-2 text-sm font-semibold py-2 px-4 rounded-lg transition-all duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Sign Out</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="flex items-center justify-center min-h-[calc(100vh-150px)] px-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl w-full">
+
+      <!-- POSTS FEED -->
+      <div class="max-w-4xl mx-auto mt-8 w-full">
+        <div class="bg-white p-6 rounded-2xl shadow mb-6">
+          <!-- New post form (only shown to alumni) -->
+          <% if (user && user.role === 'alumni') { %>
+            <form action="/post" method="POST">
+              <textarea name="content" rows="3" required
+                class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none"
+                placeholder="Share something with the network..."></textarea>
+              <div class="flex justify-end mt-3">
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold">
+                  Post
+                </button>
+              </div>
+            </form>
+          <% } %>
         </div>
-    </header>
 
-    <main class="pt-24 pb-16">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 lg:gap-8">
-            
-            <!-- Left Sidebar: Profile & Nav -->
-            <aside class="col-span-12 lg:col-span-3 lg:sticky lg:top-24 self-start">
-                <div class="space-y-6">
-                    <!-- Profile Card -->
-                    <div class="bg-card rounded-xl shadow-soft overflow-hidden animate-fade-in-up">
-                        <div class="h-24 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80')"></div>
-                        <div class="p-4 text-center -mt-12">
-                            <div class="relative inline-block">
-                                <% if (user.image) { %>
-                                   <img src="data:image/jpeg;base64,<%= user.image.toString('base64') %>" alt="Profile Photo" class="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-md">
-                                <% } else { %>
-                                   <div class="h-24 w-24 rounded-full flex items-center justify-center bg-secondary text-primary-foreground text-4xl font-bold ring-4 ring-white shadow-md">
-                                       <%= user.name ? user.name.charAt(0).toUpperCase() : "A" %>
-                                   </div>
-                                <% } %>
-                            </div>
-                            <h3 class="text-xl font-serif font-bold text-foreground mt-2"><%= user.name %></h3>
-                            <p class="text-sm text-gray-500"><%= user.designation || 'Position not set' %></p>
-                        </div>
-                        <div class="border-t border-border p-4 text-sm space-y-2">
-                            <a href="/alumni/dashboard" class="flex justify-between items-center text-gray-500 hover:text-primary"><span>Profile Views</span><span class="font-semibold text-primary">42</span></a>
-                            <a href="/alumni/dashboard" class="flex justify-between items-center text-gray-500 hover:text-primary"><span>Post Impressions</span><span class="font-semibold text-primary">816</span></a>
-                        </div>
-                         <div class="border-t border-border p-4">
-                            <a href="/alumni/profile" class="w-full text-center block px-4 py-2 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors font-semibold">
-                                Complete Profile
-                            </a>
-                        </div>
+        <% if (posts && posts.length) { %>
+          <div class="space-y-4">
+            <% posts.forEach(post => { %>
+              <div class="bg-white p-5 rounded-2xl shadow">
+                <div class="flex items-center space-x-4">
+                  <% if (post.author && post.author.image) { %>
+                    <img src="data:image/jpeg;base64,<%= post.author.image.toString('base64') %>" alt="dp"
+                         class="w-12 h-12 rounded-full object-cover">
+                  <% } else { %>
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                      <%= post.author && post.author.name ? post.author.name.charAt(0).toUpperCase() : 'A' %>
                     </div>
-                    <!-- Navigation -->
-                    <nav class="bg-card rounded-xl shadow-soft p-4 animate-fade-in-up" style="animation-delay: 100ms;">
-                        <ul class="space-y-1">
-                            <li><a href="/alumni/dashboard" class="nav-link active"><i data-lucide="layout-dashboard"></i> Feed</a></li>
-                            <li><a href="/alumni/dashboard" class="nav-link"><i data-lucide="users"></i> Network</a></li>
-                            <li><a href="/alumni/dashboard" class="nav-link"><i data-lucide="briefcase"></i> Jobs</a></li>
-                            <li><a href="/alumni/dashboard" class="nav-link"><i data-lucide="message-square"></i> Messaging</a></li>
-                            <li><a href="/alumni/event" class="nav-link"><i data-lucide="calendar"></i> Events</a></li>
-                        </ul>
-                    </nav>
-                     <!-- Donate Card -->
-                    <div class="bg-card rounded-xl shadow-soft p-4 text-center animate-fade-in-up" style="animation-delay: 200ms;">
-                        <i data-lucide="heart" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
-                        <h4 class="font-serif font-semibold text-foreground">Support the Community</h4>
-                        <p class="text-xs text-gray-500 mt-1 mb-3">Your contribution empowers students.</p>
-                        <a href="/alumni/donate" class="w-full text-center block px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft">
-                            Donate Now
-                        </a>
-                    </div>
+                  <% } %>
+
+                  <div>
+                    <p class="font-semibold"><%= post.author ? post.author.name : 'Unknown' %></p>
+                    <p class="text-xs text-gray-500"><%= new Date(post.createdAt).toLocaleString() %></p>
+                  </div>
                 </div>
-            </aside>
 
-            <!-- Center Column: Feed -->
-            <section class="col-span-12 lg:col-span-9 mt-8 lg:mt-0">
-                <div class="space-y-6">
-                    <!-- Create Post -->
-                    <div class="bg-card rounded-xl shadow-soft p-4 animate-fade-in-up" style="animation-delay: 200ms;">
-                         <form action="/post" method="POST" enctype="multipart/form-data" class="flex items-start gap-4">
-                            <% if (user.image) { %>
-                               <img src="data:image/jpeg;base64,<%= user.image.toString('base64') %>" alt="Your Avatar" class="h-12 w-12 rounded-full object-cover">
-                            <% } else { %>
-                               <div class="h-12 w-12 rounded-full flex-shrink-0 flex items-center justify-center bg-secondary text-primary-foreground text-xl font-bold">
-                                   <%= user.name ? user.name.charAt(0).toUpperCase() : "A" %>
-                               </div>
-                            <% } %>
-                            <div class="flex-grow">
-                                <textarea name="content" placeholder="Start a post..." class="w-full p-3 rounded-lg bg-background border border-border focus:ring-2 focus:ring-ring focus:outline-none transition-colors" rows="2" required></textarea>
-                                <div class="flex justify-between items-center mt-2">
-                                    <input type="file" name="image" id="post-image-upload" class="hidden">
-                                    <label for="post-image-upload" class="flex items-center gap-2 text-gray-500 hover:text-primary cursor-pointer transition-colors"><i data-lucide="image"></i> Photo</label>
-                                    <button type="submit" class="px-5 py-2 rounded-lg bg-primary text-primary-foreground shadow-soft hover:bg-primary/90 transition-colors font-semibold">Post</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                <p class="mt-4 text-gray-700"><%= post.content %></p>
 
-                    <!-- Feed Posts -->
-                    <div id="feed" class="space-y-6">
-                        <% if (posts && posts.length > 0) { %>
-                            <% posts.forEach((post, index) => { %>
-                                <article class="bg-card rounded-xl shadow-soft p-5 animate-fade-in-up card-hover" style="animation-delay: <%= 300 + index * 100 %>ms;">
-                                    <div class="flex items-center gap-4 mb-4">
-                                         <% if (post.author && post.author.image) { %>
-                                            <img src="data:image/jpeg;base64,<%= post.author.image.toString('base64') %>" alt="<%= post.author.name %>" class="h-12 w-12 rounded-full object-cover">
-                                        <% } else { %>
-                                            <div class="h-12 w-12 rounded-full flex items-center justify-center bg-secondary text-primary-foreground font-bold text-xl">
-                                                <%= post.author && post.author.name ? post.author.name.charAt(0).toUpperCase() : 'A' %>
-                                            </div>
-                                        <% } %>
-                                        <div>
-                                            <p class="font-semibold text-card-foreground"><%= post.author ? post.author.name : 'Unknown' %></p>
-                                            <p class="text-xs text-gray-500"><%= new Date(post.createdAt).toLocaleString() %></p>
-                                        </div>
-                                    </div>
-                                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap mb-4"><%= post.content %></p>
-                                    
-                                    <% if (post.image) { %>
-                                        <div class="mt-4 rounded-lg border border-border bg-background/50 p-1">
-                                            <img src="data:image/jpeg;base64,<%= post.image.toString('base64') %>" alt="Post Image" class="w-full h-auto max-h-[500px] object-contain rounded-md">
-                                        </div>
-                                    <% } %>
+                <!-- Actions -->
+                <div class="mt-4 flex items-center space-x-4 text-sm">
+                  <!-- Like -->
+                 <form action="/post/like/<%= post._id %>" method="POST" class="inline">
+  <button type="submit">
+    <%= post.likes.includes(user._id) ? "Dislike" : "Like" %>
+  </button>
+</form>
 
-                                    <div class="mt-4 pt-3 border-t border-border flex items-center justify-around text-gray-500">
-                                        <a href="/alumni/dashboard" class="flex items-center gap-2 hover:text-primary transition-colors group py-2 px-4 rounded-md">
-                                            <i data-lucide="heart" class="w-5 h-5 group-hover:fill-red-500 group-hover:text-red-500 transition-all"></i> <span class="font-medium text-sm">Like</span>
-                                        </a>
-                                        <a href="/alumni/dashboard" class="flex items-center gap-2 hover:text-primary transition-colors group py-2 px-4 rounded-md">
-                                            <i data-lucide="message-circle" class="w-5 h-5"></i> <span class="font-medium text-sm">Comment</span>
-                                        </a>
-                                        <a href="/alumni/dashboard" class="flex items-center gap-2 hover:text-primary transition-colors group py-2 px-4 rounded-md">
-                                            <i data-lucide="share-2" class="w-5 h-5"></i> <span class="font-medium text-sm">Share</span>
-                                        </a>
-                                    </div>
 
-                                    <% if (user && post.author && String(user._id) === String(post.author._id)) { %>
-                                        <div class="mt-3 pt-3 border-t border-border flex items-center gap-4 text-xs">
-                                            <a href="/post/edit/<%= post._id %>" class="text-primary hover:underline font-medium">Edit Post</a>
-                                            <form action="/post/delete/<%= post._id %>" method="POST" class="inline">
-                                                <button type="submit" class="text-gray-500 hover:text-red-600 hover:underline">Delete Post</button>
-                                            </form>
-                                        </div>
-                                    <% } %>
-                                </article>
-                            <% }) %>
-                        <% } else { %>
-                            <div class="bg-card rounded-xl shadow-soft p-8 text-center text-gray-500 animate-fade-in-up" style="animation-delay: 300ms;">
-                                <p>The feed is empty. Be the first to share an update!</p>
-                            </div>
-                        <% } %>
-                    </div>
+                  <!-- Edit & Delete (only if author) -->
+                  <% if (user && post.author && String(user._id) === String(post.author._id)) { %>
+                    <a href="/post/edit/<%= post._id %>" 
+                       class="text-green-600 hover:underline">✏️ Edit</a>
+
+                    <form action="/post/delete/<%= post._id %>" method="POST" class="inline">
+                      <button type="submit" class="text-gray-600 hover:underline">
+                         Delete
+                      </button>
+                    </form>
+                  <% } %>
                 </div>
-            </section>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="bg-white p-6 rounded-2xl shadow text-center text-gray-500">No posts yet.</div>
+        <% } %>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="space-y-6">
+        
+        <!-- Profile Card -->
+        <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+          <div class="flex justify-center mb-4">
+            <% if (user.image) { %>
+              <img src="data:image/jpeg;base64,<%= user.image.toString('base64') %>" 
+                   alt="Profile Image" 
+                   class="w-20 h-20 rounded-full object-cover shadow-md">
+            <% } else { %>
+              <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-2xl font-bold shadow-md">
+                <%= user.name ? user.name.charAt(0).toUpperCase() : "A" %>
+              </div>
+            <% } %>
+          </div>
+          <h2 class="text-xl font-semibold text-gray-800"><%= user.name %></h2>
+          <p class="text-gray-500 text-sm"><%= user.email %></p>
+
+          <div class="mt-6 text-left text-sm space-y-2">
+            <% if (user.graduationYear) { %>
+              <p><span class="font-semibold">Graduation Year:</span> <%= user.graduationYear %></p>
+            <% } %>
+            <% if (user.branch) { %>
+              <p><span class="font-semibold">Branch:</span> <%= user.branch %></p>
+            <% } %>
+            <% if (user.currentCompany) { %>
+              <p><span class="font-semibold">Company:</span> <%= user.currentCompany %></p>
+            <% } %>
+            <% if (user.designation) { %>
+              <p><span class="font-semibold">Designation:</span> <%= user.designation %></p>
+            <% } %>
+          </div>
+
+          <a href="/alumni/profile" 
+             class="mt-6 inline-flex items-center justify-center w-full space-x-2 text-lg font-bold py-3 px-6 rounded-xl transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600 shadow-md hover:shadow-lg">
+            <i data-lucide="user" class="w-6 h-6"></i>
+            <span>Complete Profile</span>
+          </a>
         </div>
-    </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            
-            // Particle Animation Script
-            const canvas = document.getElementById('particle-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            let particles = [];
-            const particleCount = 50;
+        <!-- Donate Card -->
+        <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+          <i data-lucide="heart" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+          <h2 class="text-xl font-semibold text-gray-800">Support the Community</h2>
+          <p class="text-gray-500 mt-2 mb-6">Your contributions help empower current students and grow the alumni network.</p>
+          
+          <a href="/alumni/donate" 
+             class="inline-flex items-center justify-center w-full space-x-2 text-lg font-bold py-3 px-6 rounded-xl transition-all duration-300 bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg">
+            <i data-lucide="gift" class="w-6 h-6"></i>
+            <span>Donate Now</span>
+          </a>
+        </div>
+      </div>
 
-            const particleColor = 'rgba(161, 98, 7, 0.5)'; // Gold color
+      <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+        <i data-lucide="heart" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+        <h2 class="text-xl font-semibold text-gray-800">Schedule an Event</h2>
+        <p class="text-gray-500 mt-2 mb-6">help the students to grow.</p>
+        
+        <a href="/alumni/event" 
+           class="inline-flex items-center justify-center w-full space-x-2 text-lg font-bold py-3 px-6 rounded-xl transition-all duration-300 bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg">
+          <i data-lucide="gift" class="w-6 h-6"></i>
+          <span>Add an Event</span>
+        </a>
+      </div>
 
-            class Particle {
-                constructor(x, y) {
-                    this.x = x;
-                    this.y = y;
-                    this.size = Math.random() * 2 + 1;
-                    this.speedX = Math.random() * 1 - 0.5;
-                    this.speedY = Math.random() * 1 - 0.5;
-                }
-                update() {
-                    this.x += this.speedX;
-                    this.y += this.speedY;
-                    if (this.size > 0.1) this.size -= 0.01;
-                }
-                draw() {
-                    ctx.fillStyle = particleColor;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
+    </div>
+  </main>
 
-            function initParticles() {
-                for (let i = 0; i < particleCount; i++) {
-                    particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
-                }
-            }
-            initParticles();
-
-            function animateParticles() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = 0; i < particles.length; i++) {
-                    particles[i].update();
-                    particles[i].draw();
-                    if (particles[i].size <= 0.1) {
-                        particles.splice(i, 1);
-                        i--;
-                        particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
-                    }
-                }
-                requestAnimationFrame(animateParticles);
-            }
-            animateParticles();
-
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                particles = [];
-                initParticles();
-            });
-
-            // Staggered fade-in animation observer
-            const animatedElements = document.querySelectorAll('.animate-fade-in-up');
-            const animationObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                        animationObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            animatedElements.forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(10px)';
-                el.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-                animationObserver.observe(el);
-            });
-        });
-    </script>
+  <script>
+    lucide.createIcons();
+  </script>
 </body>
 </html>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".like-btn").forEach(button => {
+    button.addEventListener("click", async () => {
+      const postId = button.getAttribute("data-id");
+
+      try {
+        const res = await fetch(`/post/like/${postId}`, {
+          method: "POST"
+        });
+        const data = await res.json();
+
+        // Toggle text between Like/Dislike
+        button.innerHTML = `${data.liked ? "Dislike" : "Like"} (<span class="like-count">${data.likesCount}</span>)`;
+      } catch (err) {
+        console.error("❌ Error toggling like:", err);
+      }
+    });
+  });
+});
+</script>
 

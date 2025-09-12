@@ -13,9 +13,6 @@ const postSchema = new Schema({
         required: true,
         trim: true
     },
-    image: {
-        type: Buffer,
-    },
     likes: [{
         type: Schema.Types.ObjectId,
         ref: 'alumni'
