@@ -1,120 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verification Requests — SAMPARK</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-      tailwind.config = { theme: { extend: { colors: { background: "#f8f5f2", foreground: "#1f1c18", card: "#ffffff", "card-foreground": "#1f1c18", primary: "#a16207", "primary-foreground": "#ffffff", secondary: "#b99553", border: "rgba(0, 0, 0, 0.08)", }, fontFamily: { sans: ["Inter", "sans-serif"], serif: ["Playfair Display", "serif"], }, boxShadow: { soft: "0 4px 12px rgba(0, 0, 0, 0.05)" }, }, }, };
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "#f8f5f2",
+              foreground: "#1f1c18",
+              card: "#ffffff",
+              "card-foreground": "#1f1c18",
+              primary: "#a16207",
+              "primary-foreground": "#ffffff",
+              secondary: "#b99553",
+              border: "rgba(0, 0, 0, 0.08)",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ["Playfair Display", "serif"],
+            },
+            boxShadow: { soft: "0 4px 12px rgba(0, 0, 0, 0.05)" },
+          },
+        },
+      };
     </script>
-</head>
-<body class="bg-background text-foreground font-sans">
-  <div class="flex h-screen">
-    <aside class="w-64 flex-shrink-0 bg-card border-r border-border flex-col hidden md:flex">
-        <div class="h-16 flex items-center justify-center border-b border-border">
-            <h1 class="text-2xl font-serif font-bold text-primary">SAMPARK</h1>
+  </head>
+  <body class="bg-background text-foreground font-sans">
+    <div class="flex h-screen">
+      <aside
+        class="w-64 flex-shrink-0 bg-card border-r border-border flex-col hidden md:flex"
+      >
+        <div
+          class="h-16 flex items-center justify-center border-b border-border"
+        >
+          <h1 class="text-2xl font-serif font-bold text-primary">SAMPARK</h1>
         </div>
         <nav class="flex-grow p-4 space-y-2">
-            <a href="/college/dashboard" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Dashboard</span></a>
-            <a href="/college/alumni" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"><i data-lucide="users" class="w-5 h-5"></i><span>Alumni</span></a>
-            <a href="/college/jobs" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"><i data-lucide="briefcase" class="w-5 h-5"></i><span>Jobs & Internships</span></a>
-            <a href="/college/campaigns" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"><i data-lucide="gem" class="w-5 h-5"></i><span>Donations & Campaign</span></a>
-            <a href="/college/verification" class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary"><i data-lucide="user-check" class="w-5 h-5"></i><span>Verification Requests</span></a>
+          <a
+            href="/college/dashboard"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            ><i data-lucide="layout-dashboard" class="w-5 h-5"></i
+            ><span>Dashboard</span></a
+          >
+          <a
+            href="/college/alumni"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            ><i data-lucide="users" class="w-5 h-5"></i><span>Alumni</span></a
+          >
+          <a
+            href="/college/jobs"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            ><i data-lucide="briefcase" class="w-5 h-5"></i
+            ><span>Jobs & Internships</span></a
+          >
+          <a
+            href="/college/campaigns"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg text-gray-600 hover:bg-primary/10 hover:text-primary transition-colors"
+            ><i data-lucide="gem" class="w-5 h-5"></i
+            ><span>Donations & Campaign</span></a
+          >
+          <a
+            href="/college/verification"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary"
+            ><i data-lucide="user-check" class="w-5 h-5"></i
+            ><span>Verification Requests</span></a
+          >
         </nav>
         <div class="p-4 border-t border-border">
-            <button class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft"><i data-lucide="log-out" class="w-4 h-4"></i>Logout</button>
+          <a href="/logout"
+            ><button
+              class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft"
+            >
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              Logout
+            </button></a
+          >
         </div>
-    </aside>
+      </aside>
 
-    <main class="flex-1 overflow-y-auto p-4 md:p-8">
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
         <div class="max-w-7xl mx-auto">
-            <div class="mb-10">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-serif font-bold text-foreground">Alumni Requests</h2>
-                    <p class="text-gray-500">Review and process pending alumni verification requests.</p>
-                </div>
-                <div class="bg-card rounded-xl shadow-soft overflow-hidden">
-                    <div class="grid grid-cols-12 gap-4 font-semibold text-xs text-gray-500 uppercase px-6 py-4 border-b border-border bg-background">
-                        <div class="col-span-4">Alumni</div><div class="col-span-3">Branch</div><div class="col-span-2">Grad Year</div><div class="col-span-3 text-right">Actions</div>
-                    </div>
-                    <% if (alumniRequests && alumniRequests.length > 0) { %>
-                        <% alumniRequests.forEach(request => { %>
-                        <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-border last:border-b-0 hover:bg-background/50 transition-colors">
-                            <div class="col-span-4 flex items-center gap-4">
-                                <div class="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-secondary text-primary-foreground font-bold">
-                                    <% if (request.name && request.name.length > 0) { %>
-                                        <%= request.name.charAt(0).toUpperCase() %>
-                                    <% } else { %>
-                                        ?
-                                    <% } %>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-card-foreground"><%= request.name || 'Name Missing' %></p>
-                                    <p class="text-sm text-gray-500"><%= request.email %></p>
-                                </div>
-                            </div>
-                            <div class="col-span-3 text-sm text-gray-600"><%= request.branch %></div>
-                            <div class="col-span-2 text-sm text-gray-600"><%= request.graduationYear %></div>
-                            <div class="col-span-3 flex justify-end items-center gap-2">
-                                <form action="/college/verification/approve/<%= request._id %>?role=alumni" method="POST"><button type="submit" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-100 text-green-800 hover:bg-green-200 transition-colors text-sm font-semibold"><i data-lucide="check" class="w-4 h-4"></i> Approve</button></form>
-                                <form action="/college/verification/reject/<%= request._id %>?role=alumni" method="POST"><button type="submit" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-100 text-red-800 hover:bg-red-200 transition-colors text-sm font-semibold"><i data-lucide="x" class="w-4 h-4"></i> Reject</button></form>
-                            </div>
-                        </div>
-                        <% }); %>
-                    <% } else { %>
-                        <div class="text-center p-12 text-gray-500"><p>No pending alumni verification requests.</p></div>
-                    <% } %>
-                </div>
+          <div class="mb-10">
+            <div class="mb-6">
+              <h2 class="text-3xl font-serif font-bold text-foreground">
+                Alumni Requests
+              </h2>
+              <p class="text-gray-500">
+                Review and process pending alumni verification requests.
+              </p>
             </div>
+            <div class="bg-card rounded-xl shadow-soft overflow-hidden">
+              <div
+                class="grid grid-cols-12 gap-4 font-semibold text-xs text-gray-500 uppercase px-6 py-4 border-b border-border bg-background"
+              >
+                <div class="col-span-4">Alumni</div>
+                <div class="col-span-3">Branch</div>
+                <div class="col-span-2">Grad Year</div>
+                <div class="col-span-3 text-right">Actions</div>
+              </div>
+              <% if (alumniRequests && alumniRequests.length > 0) { %> <%
+              alumniRequests.forEach(request => { %>
+              <div
+                class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-border last:border-b-0 hover:bg-background/50 transition-colors"
+              >
+                <div class="col-span-4 flex items-center gap-4">
+                  <div
+                    class="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-secondary text-primary-foreground font-bold"
+                  >
+                    <% if (request.name && request.name.length > 0) { %> <%=
+                    request.name.charAt(0).toUpperCase() %> <% } else { %> ? <%
+                    } %>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-card-foreground">
+                      <%= request.name || 'Name Missing' %>
+                    </p>
+                    <p class="text-sm text-gray-500"><%= request.email %></p>
+                  </div>
+                </div>
+                <div class="col-span-3 text-sm text-gray-600">
+                  <%= request.branch %>
+                </div>
+                <div class="col-span-2 text-sm text-gray-600">
+                  <%= request.graduationYear %>
+                </div>
+                <div class="col-span-3 flex justify-end items-center gap-2">
+                  <form
+                    action="/college/verification/approve/<%= request._id %>?role=alumni"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-100 text-green-800 hover:bg-green-200 transition-colors text-sm font-semibold"
+                    >
+                      <i data-lucide="check" class="w-4 h-4"></i> Approve
+                    </button>
+                  </form>
+                  <form
+                    action="/college/verification/reject/<%= request._id %>?role=alumni"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-100 text-red-800 hover:bg-red-200 transition-colors text-sm font-semibold"
+                    >
+                      <i data-lucide="x" class="w-4 h-4"></i> Reject
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <% }); %> <% } else { %>
+              <div class="text-center p-12 text-gray-500">
+                <p>No pending alumni verification requests.</p>
+              </div>
+              <% } %>
+            </div>
+          </div>
 
-            <div>
-                 <div class="mb-6">
-                    <h2 class="text-3xl font-serif font-bold text-foreground">Student Requests</h2>
-                    <p class="text-gray-500">Review and process pending student verifications.</p>
-                </div>
-                <div class="bg-card rounded-xl shadow-soft overflow-hidden">
-                    <div class="grid grid-cols-12 gap-4 font-semibold text-xs text-gray-500 uppercase px-6 py-4 border-b border-border bg-background">
-                        <div class="col-span-4">Student</div><div class="col-span-3">Branch</div><div class="col-span-2">Passout Year</div><div class="col-span-3 text-right">Actions</div>
-                    </div>
-                    <% if (studentRequests && studentRequests.length > 0) { %>
-                        <% studentRequests.forEach(request => { %>
-                        <div class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-border last:border-b-0 hover:bg-background/50 transition-colors">
-                            <div class="col-span-4 flex items-center gap-4">
-                                <div class="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-secondary text-primary-foreground font-bold">
-                                    <% if (request.fullname && request.fullname.length > 0) { %>
-                                        <%= request.fullname.charAt(0).toUpperCase() %>
-                                    <% } else { %>
-                                        ?
-                                    <% } %>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-card-foreground"><%= request.fullname || 'Name Missing' %></p>
-                                    <p class="text-sm text-gray-500"><%= request.email %></p>
-                                </div>
-                            </div>
-                            <div class="col-span-3 text-sm text-gray-600"><%= request.branch || 'N/A' %></div>
-                            <div class="col-span-2 text-sm text-gray-600"><%= request.graduationYear || 'N/A' %></div>
-                            <div class="col-span-3 flex justify-end items-center gap-2">
-                                 <form action="/college/verification/approve/<%= request._id %>?role=student" method="POST"><button type="submit" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-100 text-green-800 hover:bg-green-200 transition-colors text-sm font-semibold"><i data-lucide="check" class="w-4 h-4"></i> Approve</button></form>
-                                <form action="/college/verification/reject/<%= request._id %>?role=student" method="POST"><button type="submit" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-100 text-red-800 hover:bg-red-200 transition-colors text-sm font-semibold"><i data-lucide="x" class="w-4 h-4"></i> Reject</button></form>
-                            </div>
-                        </div>
-                        <% }); %>
-                    <% } else { %>
-                        <div class="text-center p-12 text-gray-500"><p>No pending student verification requests.</p></div>
-                    <% } %>
-                </div>
+          <div>
+            <div class="mb-6">
+              <h2 class="text-3xl font-serif font-bold text-foreground">
+                Student Requests
+              </h2>
+              <p class="text-gray-500">
+                Review and process pending student verifications.
+              </p>
             </div>
+            <div class="bg-card rounded-xl shadow-soft overflow-hidden">
+              <div
+                class="grid grid-cols-12 gap-4 font-semibold text-xs text-gray-500 uppercase px-6 py-4 border-b border-border bg-background"
+              >
+                <div class="col-span-4">Student</div>
+                <div class="col-span-3">Branch</div>
+                <div class="col-span-2">Passout Year</div>
+                <div class="col-span-3 text-right">Actions</div>
+              </div>
+              <% if (studentRequests && studentRequests.length > 0) { %> <%
+              studentRequests.forEach(request => { %>
+              <div
+                class="grid grid-cols-12 gap-4 items-center px-6 py-4 border-b border-border last:border-b-0 hover:bg-background/50 transition-colors"
+              >
+                <div class="col-span-4 flex items-center gap-4">
+                  <div
+                    class="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-secondary text-primary-foreground font-bold"
+                  >
+                    <% if (request.fullname && request.fullname.length > 0) { %>
+                    <%= request.fullname.charAt(0).toUpperCase() %> <% } else {
+                    %> ? <% } %>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-card-foreground">
+                      <%= request.fullname || 'Name Missing' %>
+                    </p>
+                    <p class="text-sm text-gray-500"><%= request.email %></p>
+                  </div>
+                </div>
+                <div class="col-span-3 text-sm text-gray-600">
+                  <%= request.branch || 'N/A' %>
+                </div>
+                <div class="col-span-2 text-sm text-gray-600">
+                  <%= request.graduationYear || 'N/A' %>
+                </div>
+                <div class="col-span-3 flex justify-end items-center gap-2">
+                  <form
+                    action="/college/verification/approve/<%= request._id %>?role=student"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-green-100 text-green-800 hover:bg-green-200 transition-colors text-sm font-semibold"
+                    >
+                      <i data-lucide="check" class="w-4 h-4"></i> Approve
+                    </button>
+                  </form>
+                  <form
+                    action="/college/verification/reject/<%= request._id %>?role=student"
+                    method="POST"
+                  >
+                    <button
+                      type="submit"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-100 text-red-800 hover:bg-red-200 transition-colors text-sm font-semibold"
+                    >
+                      <i data-lucide="x" class="w-4 h-4"></i> Reject
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <% }); %> <% } else { %>
+              <div class="text-center p-12 text-gray-500">
+                <p>No pending student verification requests.</p>
+              </div>
+              <% } %>
+            </div>
+          </div>
         </div>
-    </main>
-  </div>
-  <script>
-    lucide.createIcons();
-  </script>
-</body>
+      </main>
+    </div>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
 </html>
