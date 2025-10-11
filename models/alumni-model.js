@@ -52,6 +52,11 @@ const alumniSchema = new Schema({
         ref: "student" // Correctly referencing the 'student' model
     }],
 
+    points: {
+        type: Number,
+        default: 0,
+        required: true
+    },
     // Stores IDs of students this alumnus is connected with.
     connections: [{
         type: mongoose.Schema.Types.ObjectId,

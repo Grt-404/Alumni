@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post a New Job Opportunity - Sampark</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Fonts & Config from your theme -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-cream': '#FFFBF5',
+                        'brand-petal': '#F2E6E0',
+                        'brand-gold': '#BBA14F',
+                        'brand-bark': '#5E503F',
+                        'brand-midnight': '#1C1C1C',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                        display: ['Playfair Display', 'serif']
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base styles matching the theme */
+        body {
+            font-family: theme('fontFamily.sans');
+            background-color: theme('colors.brand-petal'); 
+            color: theme('colors.brand-bark');
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-display { font-family: theme('fontFamily.display'); }
+
+        /* --- Custom Form Element Styles --- */
+        .label-style {
+            /* Bold, high-contrast label */
+            @apply block text-sm font-semibold text-brand-bark mb-1 uppercase tracking-wider; 
+        }
+        
+        .input-style {
+            /* Defined, spacious, and elegant input field */
+            @apply mt-1 block w-full px-5 py-3 border-b-2 border-brand-bark/20 rounded-t-lg bg-brand-cream/70 focus:ring-0 focus:border-brand-gold transition duration-200 text-brand-midnight placeholder-brand-bark/50 shadow-inner;
+        }
+
+        .select-icon {
+            /* Custom styling for the select dropdown arrow */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235E503F'%3e%3cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3e%3c/svg%3e");
+            background-position: right 1rem center;
+            background-size: 1.5em 1.5em;
+            background-repeat: no-repeat;
+        }
+        
+        .btn-gold {
+            /* Massive, full-width, pill-shaped button with deep shadow */
+            @apply w-full flex justify-center py-4 px-6 rounded-full text-xl font-bold text-white bg-brand-gold shadow-2xl shadow-brand-gold/50 
+                   hover:bg-brand-bark hover:shadow-brand-bark/60 transition duration-300 ease-in-out transform hover:scale-[1.005] active:scale-[0.99] tracking-widest;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pt-20">
+    <!-- Header/Navigation -->
+    <header class="fixed w-full z-30 top-0 bg-brand-cream/95 backdrop-blur-sm border-b border-brand-petal/50 shadow-md">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <nav class="flex-1 justify-start space-x-10 text-sm uppercase tracking-widest hidden md:flex">
+                <a href="/alumni/dashboard" class="hover:text-brand-gold transition">Dashboard</a>
+                <a href="/alumni/jobs" class="hover:text-brand-gold transition">All Jobs</a>
+            </nav>
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <a href="/" class="text-4xl font-display tracking-wider text-brand-bark">SAMPARK</a>
+            </div>
+            <nav class="flex-1 justify-end space-x-10 text-sm uppercase tracking-widest flex items-center">
+                <!-- Highlight the current page -->
+                <a href="/alumni/jobs/new" class="font-extrabold text-brand-gold transition border-b-2 border-brand-gold pb-1">Post Job</a>
+                <a href="/logout" class="py-2 px-4 bg-brand-gold text-white rounded-lg hover:bg-brand-bark transition shadow-lg">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content (The Job Posting Form) -->
+    <main class="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <!-- The Elevated Form Card with Gold Accent -->
+        <div class="flex bg-brand-cream rounded-3xl shadow-2xl shadow-brand-bark/10 overflow-hidden">
+            
+            <!-- Gold Accent Sidebar -->
+            <div class="w-2 bg-brand-gold hidden sm:block"></div>
+
+            <!-- Form Content Area -->
+            <div class="flex-grow p-6 sm:p-12 lg:p-16">
+            
+                <div class="text-center mb-12">
+                    <h1 class="text-7xl font-display text-brand-bark leading-snug mb-2">Share Opportunity</h1>
+                    <p class="mt-4 text-xl font-serif text-brand-bark/80">Contribute to the network and earn **Sampark Points** for your impact.</p>
+                </div>
+
+                <!-- Flash Messages (Errors/Success) -->
+                <% if (typeof messages !== 'undefined' && messages.error) { %>
+                    <div class="mb-8 p-4 text-base text-white bg-red-700 rounded-xl shadow-md" role="alert">
+                        <p class="font-bold mb-1">Attention:</p>
+                        <p><%= messages.error %></p>
+                    </div>
+                <% } %>
+                
+                <form action="/alumni/jobs/new" method="POST" class="space-y-10">
+                    
+                    <!-- Section: Core Details -->
+                    <fieldset class="border-t border-brand-bark/10 pt-6">
+                        <legend class="text-2xl font-serif text-brand-bark/90 mb-6 px-2">Core Details</legend>
+                        
+                        <div class="space-y-6">
+                            <!-- Job Title -->
+                            <div>
+                                <label for="title" class="label-style">Job Title <span class="text-red-500">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="title" 
+                                    name="title" 
+                                    required 
+                                    placeholder="e.g., Lead Product Manager - FinTech, or Senior Partner"
+                                    class="input-style"
+                                >
+                            </div>
+        
+                            <!-- Company Name and Location Group -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Company Name -->
+                                <div>
+                                    <label for="company" class="label-style">Company Name <span class="text-red-500">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        id="company" 
+                                        name="company" 
+                                        required 
+                                        placeholder="Enter the company name (e.g., Goldman Sachs, Google)"
+                                        class="input-style"
+                                    >
+                                </div>
+                                
+                                <!-- Location -->
+                                <div>
+                                    <label for="location" class="label-style">Location <span class="text-red-500">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        id="location" 
+                                        name="location" 
+                                        required 
+                                        placeholder="Specify location (e.g., NYC, Bangalore, 100% Remote)"
+                                        class="input-style"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Section: Specifics -->
+                    <fieldset class="border-t border-brand-bark/10 pt-6">
+                        <legend class="text-2xl font-serif text-brand-bark/90 mb-6 px-2">Job Specifics</legend>
+
+                        <div class="space-y-6">
+                            <!-- Job Type Dropdown -->
+                            <div>
+                                <label for="type" class="label-style">Job Type <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <select 
+                                        id="type" 
+                                        name="type" 
+                                        required
+                                        class="input-style appearance-none select-icon"
+                                    >
+                                        <option value="" disabled selected class="text-gray-400">Select the employment type (e.g., Full-time, Internship)</option>
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Part-time">Part-time</option>
+                                        <option value="Internship">Internship</option>
+                                        <option value="Contract">Contract</option>
+                                        <option value="Remote">Remote</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Application Link/Email -->
+                            <div>
+                                <label for="applicationContact" class="label-style">Application Link/Email <span class="text-red-500">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="applicationContact" 
+                                    name="applicationContact" 
+                                    required 
+                                    placeholder="Paste Application URL or enter HR email address"
+                                    class="input-style"
+                                >
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!-- Section: Description -->
+                    <fieldset class="border-t border-brand-bark/10 pt-6">
+                        <legend class="text-2xl font-serif text-brand-bark/90 mb-6 px-2">Description</legend>
+
+                        <!-- Job Description -->
+                        <div>
+                            <label for="description" class="label-style">Job Description <span class="text-red-500">*</span></label>
+                            <textarea 
+                                id="description" 
+                                name="description" 
+                                rows="10"
+                                required 
+                                placeholder="Detail responsibilities, requirements, and company culture. Formatting like bullet points is highly encouraged."
+                                class="input-style"
+                            ></textarea>
+                        </div>
+                    </fieldset>
+
+
+                    <!-- Submit Button -->
+                    <div class="pt-6">
+                        <button type="submit" class="btn-gold">
+                            Post Job & Amplify Network 
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 pt-16 pb-10 px-6 bg-brand-cream/80 border-t border-brand-petal shadow-inner">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-12 text-sm text-center md:text-left">
+            <div>
+                <h4 class="font-semibold uppercase tracking-wider mb-4">SAMPARK</h4>
+                <ul class="space-y-2 text-brand-bark/70">
+                    <li><a href="#" class="hover:text-brand-bark">Our Mission</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Success Stories</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Contact</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold uppercase tracking-wider mb-4">Network</h4>
+                <ul class="space-y-2 text-brand-bark/70">
+                    <li><a href="#" class="hover:text-brand-bark">Find a Mentor</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Events</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Career Paths</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold uppercase tracking-wider mb-4">Resources</h4>
+                <ul class="space-y-2 text-brand-bark/70">
+                    <li><a href="#" class="hover:text-brand-bark">Help Center</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-brand-bark">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold uppercase tracking-wider mb-4">Follow Us</h4>
+                <div class="flex space-x-4 justify-center md:justify-start">
+                    <a href="#" class="text-brand-bark/70 hover:text-brand-bark">IG</a>
+                    <a href="#" class="text-brand-bark/70 hover:text-brand-bark">LI</a>
+                    <a href="#" class="text-brand-bark/70 hover:text-brand-bark">TW</a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-20 text-center text-xs text-brand-bark/50">&copy; 2025 SAMPARK. All Rights Reserved.</div>
+    </footer>
+</body>
+</html>

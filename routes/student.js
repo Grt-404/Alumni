@@ -132,7 +132,7 @@ router.get('/connections', isLoggedIn, async (req, res) => {
 router.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
     const posts = await Post.find().populate("author");
-    const AlumniList = await Alumni.find().sort({ createdAt: -1 })
+    const AlumniList = await Alumni.find({ status: "Verified" }).sort({ createdAt: -1 })
 
     const today = new Date();
 
@@ -231,132 +231,132 @@ router.get("/posts", isLoggedIn, async (req, res) => {
   }
 });
 
-router.get("/referrals" , isLoggedIn , async (req,res)=>{
+router.get("/referrals", isLoggedIn, async (req, res) => {
   const student = await Student.findById(req.user._id)
-      .populate('connections');
+    .populate('connections');
 
-  res.render("studentRef" , {
-      user: req.user,
-      connections: student.connections
-    })
+  res.render("studentRef", {
+    user: req.user,
+    connections: student.connections
+  })
 })
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 router.get("/map", isLoggedIn, async (req, res) => {
-    try {
-        // 1. Fetch all alumni with a location specified to display in the sidebar
-        const alumniData = await Alumni.find({ 
-            _id: { $ne: req.user._id },
-        });
-        
-        // 2. Render the view immediately without location data for the map.
-        // The locations will be fetched via WebSocket after the page loads.
-        res.render("map", {
-            user: req.user,
-            alumniList: alumniData, 
-        });
-    } catch (err) {
-        console.error("Error loading alumni map page:", err)
-        res.redirect('/student/dashboard');
-    }
+  try {
+    // 1. Fetch all alumni with a location specified to display in the sidebar
+    const alumniData = await Alumni.find({
+      _id: { $ne: req.user._id },
+    });
+
+    // 2. Render the view immediately without location data for the map.
+    // The locations will be fetched via WebSocket after the page loads.
+    res.render("map", {
+      user: req.user,
+      alumniList: alumniData,
+    });
+  } catch (err) {
+    console.error("Error loading alumni map page:", err)
+    res.redirect('/student/dashboard');
+  }
 });
 
 
 
 router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
- try {
-   const studentId = req.user._id;
-   const alumniId = req.params.alumniId;
-   const student = await Student.findById(studentId);
-   const alumni = await Alumni.findById(alumniId);
-   if (!student || !alumni) {
-     return res.status(404).json({ error: "User not found." });
-   }
-   if (student.sentRequests.includes(alumniId) || alumni.invitations.includes(studentId)) {
-     return res.status(400).json({ error: 'Connection request already sent.' });
-   }
-   if (student.connections.includes(alumniId) || alumni.connections.includes(studentId)) {
-     return res.status(400).json({ error: 'You are already connected.' });
-   }
-   student.sentRequests.push(alumniId);
-   alumni.invitations.push(studentId);
-   await student.save();
-   await alumni.save();
-   res.status(200).json({ message: 'Connection request sent successfully!' });
- } catch (error) {
-   console.error("Error sending connection request:", error);
-   res.status(500).json({ error: 'Server error' });
- }
+  try {
+    const studentId = req.user._id;
+    const alumniId = req.params.alumniId;
+    const student = await Student.findById(studentId);
+    const alumni = await Alumni.findById(alumniId);
+    if (!student || !alumni) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    if (student.sentRequests.includes(alumniId) || alumni.invitations.includes(studentId)) {
+      return res.status(400).json({ error: 'Connection request already sent.' });
+    }
+    if (student.connections.includes(alumniId) || alumni.connections.includes(studentId)) {
+      return res.status(400).json({ error: 'You are already connected.' });
+    }
+    student.sentRequests.push(alumniId);
+    alumni.invitations.push(studentId);
+    await student.save();
+    await alumni.save();
+    res.status(200).json({ message: 'Connection request sent successfully!' });
+  } catch (error) {
+    console.error("Error sending connection request:", error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 router.get('/profile', isLoggedIn, async (req, res) => {
-    try {
-        const student = await Student.findById(req.user._id)
-            .populate({
-                path: 'connections',
-                select: 'name designation currentCompany image'
-            });
-        
-        const eventRequests = await EventRequest.find({ requestedBy: req.user._id })
-            .sort({ createdAt: -1 });
+  try {
+    const student = await Student.findById(req.user._id)
+      .populate({
+        path: 'connections',
+        select: 'name designation currentCompany image'
+      });
 
-        if (!student) {
-            req.flash('error', 'Could not find your profile. Please log in again.');
-            return res.redirect('/student/login');
-        }
+    const eventRequests = await EventRequest.find({ requestedBy: req.user._id })
+      .sort({ createdAt: -1 });
 
-        res.render('studentProfile', {
-            user: student,
-            connections: student.connections,
-            eventRequests: eventRequests
-        });
-    } catch (error) {
-        console.error("Error loading profile page:", error);
-        req.flash('error', 'An error occurred while loading your profile.');
-        res.redirect('/student/dashboard');
+    if (!student) {
+      req.flash('error', 'Could not find your profile. Please log in again.');
+      return res.redirect('/student/login');
     }
+
+    res.render('studentProfile', {
+      user: student,
+      connections: student.connections,
+      eventRequests: eventRequests
+    });
+  } catch (error) {
+    console.error("Error loading profile page:", error);
+    req.flash('error', 'An error occurred while loading your profile.');
+    res.redirect('/student/dashboard');
+  }
 });
 
 // POST route to update the profile information
 router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => {
-    try {
-        const student = await Student.findById(req.user._id);
+  try {
+    const student = await Student.findById(req.user._id);
 
-        if (!student) {
-            req.flash('error', 'Could not find your profile to update.');
-            return res.redirect('/student/login');
-        }
-
-        // Update standard text fields
-        student.fullname = req.body.fullname || student.fullname;
-        student.contact = req.body.contact || student.contact;
-        student.branch = req.body.branch || student.branch; // Update branch
-
-        // Process and update interests from the hidden input
-        if (req.body.interests) {
-            student.interests = req.body.interests
-                .split(',') // Split the comma-separated string into an array
-                .map(interest => interest.trim()) // Trim whitespace from each item
-                .filter(interest => interest); // Remove any empty items
-        } else {
-            student.interests = []; // Clear interests if the field is empty
-        }
-
-        // Handle profile image upload
-        if (req.file) {
-            student.image = req.file.buffer;
-        }
-
-        await student.save();
-
-        req.flash('success', 'Profile updated successfully!');
-        res.redirect('/student/profile');
-    } catch (err) {
-        console.error("Error updating profile:", err);
-        req.flash('error', 'An error occurred while updating your profile.');
-        res.redirect('/student/profile');
+    if (!student) {
+      req.flash('error', 'Could not find your profile to update.');
+      return res.redirect('/student/login');
     }
+
+    // Update standard text fields
+    student.fullname = req.body.fullname || student.fullname;
+    student.contact = req.body.contact || student.contact;
+    student.branch = req.body.branch || student.branch; // Update branch
+
+    // Process and update interests from the hidden input
+    if (req.body.interests) {
+      student.interests = req.body.interests
+        .split(',') // Split the comma-separated string into an array
+        .map(interest => interest.trim()) // Trim whitespace from each item
+        .filter(interest => interest); // Remove any empty items
+    } else {
+      student.interests = []; // Clear interests if the field is empty
+    }
+
+    // Handle profile image upload
+    if (req.file) {
+      student.image = req.file.buffer;
+    }
+
+    await student.save();
+
+    req.flash('success', 'Profile updated successfully!');
+    res.redirect('/student/profile');
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    req.flash('error', 'An error occurred while updating your profile.');
+    res.redirect('/student/profile');
+  }
 });
 
 module.exports = router;

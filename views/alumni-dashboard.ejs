@@ -114,6 +114,36 @@
     </style>
   </head>
   <body class="bg-background font-sans antialiased text-foreground">
+
+    <% if (user && (user.status === 'Pending' || user.status === 'Rejected')) { %>
+    <!-- Status Modal -->
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-card rounded-xl shadow-lift max-w-md w-full p-8 text-center animate-fade-in-up">
+            <% if (user.status === 'Pending') { %>
+                <!-- Pending Content -->
+                <i data-lucide="hourglass" class="w-16 h-16 text-secondary mx-auto mb-4 animate-pulse"></i>
+                <h2 class="text-2xl font-serif font-bold text-foreground mb-2">Verification in Progress</h2>
+                <p class="text-gray-600">
+                    Your account is currently under review by the college administration. 
+                    You will be able to access the dashboard once your account is approved. 
+                    We appreciate your patience!
+                </p>
+            <% } else if (user.status === 'Rejected') { %>
+                <!-- Rejected Content -->
+                <i data-lucide="x-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+                <h2 class="text-2xl font-serif font-bold text-foreground mb-2">Account Request Rejected</h2>
+                <p class="text-gray-600">
+                    We're sorry, but your request to join the alumni network has been rejected by the college administration. 
+                    If you believe this is an error, please contact support.
+                </p>
+                <a href="/logout" class="mt-6 inline-block px-5 py-2 rounded-lg bg-primary text-primary-foreground shadow-soft hover:bg-primary/90 transition-colors font-semibold">
+                    Logout
+                </a>
+            <% } %>
+        </div>
+    </div>
+    <% } %>
+
     <canvas id="particle-canvas"></canvas>
 
     <header class="fixed top-0 inset-x-0 z-40 glass-header">
@@ -159,6 +189,11 @@
               href="/alumni/dashboard"
               class="nav-link active flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
               ><i data-lucide="layout-dashboard"></i>Feed</a
+            >
+            <a
+              href="/alumni/leaderboard"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="trophy"></i>Leaderboard</a
             >
             <a
               href="/alumni/network"
@@ -522,7 +557,7 @@ document.getElementById('invitations-list').addEventListener('click', function(e
                     invitationCard.remove();
                     // Optional: Check if the list is now empty and show the "No new requests" message
                     if (document.getElementById('invitations-list').children.length === 0) {
-                         document.getElementById('invitations-list').innerHTML = '<p class="text-gray-500 text-sm">No new connection requests.</p>';
+                        document.getElementById('invitations-list').innerHTML = '<p class="text-gray-500 text-sm">No new connection requests.</p>';
                     }
                 }, 500);
             } else {

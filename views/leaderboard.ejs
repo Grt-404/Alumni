@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leaderboard — SAMPARK</title>
+    <meta
+      name="description"
+      content="SAMPARK is a world-class alumni nexus for elite networking, career acceleration, and community impact."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23d4af37'/%3E%3Cstop offset='100%25' stop-color='%23a16207'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-size='32' text-anchor='middle' fill='white' font-family='Arial Black'%3EA%3C/text%3E%3C/svg%3E"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "#f8f5f2",
+              foreground: "#1f1c18",
+              card: "#ffffff",
+              "card-foreground": "#1f1c18",
+              primary: "#a16207",
+              "primary-foreground": "#ffffff",
+              secondary: "#b99553",
+              border: "rgba(0, 0, 0, 0.08)",
+              // Leaderboard specific colors
+              'rank-gold': '#FFD700',
+              'rank-silver': '#C0C0C0',
+              'rank-bronze': '#CD7F32',
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ["Playfair Display", "serif"],
+            },
+            boxShadow: {
+              soft: "0 4px 12px rgba(0, 0, 0, 0.05)",
+              lift: "0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
+              glow: "0 0 20px rgba(161, 98, 7, 0.15)",
+            },
+            keyframes: {
+              "fade-in-up": {
+                "0%": { opacity: 0, transform: "translateY(20px)" },
+                "100%": { opacity: 1, transform: "translateY(0)" },
+              },
+              backgroundShift: {
+                "0%, 100%": { backgroundPosition: "0% 50%" },
+                "50%": { backgroundPosition: "100% 50%" },
+              },
+            },
+            animation: {
+              "fade-in-up": "fade-in-up 0.8s ease-out forwards",
+              backgroundShift: "backgroundShift 25s ease infinite",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: linear-gradient(-45deg, #f8f5f2, #fffefc, #fef8f0, #f8f5f2);
+        background-size: 400% 400%;
+        animation: backgroundShift 25s ease infinite;
+      }
+      .glass-header {
+        background: rgba(255, 253, 250, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--tw-color-border);
+      }
+      #particle-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.6;
+      }
+      .nav-link {
+        transition: all 0.2s ease-in-out;
+        border-bottom: 2px solid transparent;
+      }
+      .nav-link.active,
+      .nav-link:hover {
+        color: var(--tw-color-primary);
+        border-bottom-color: var(--tw-color-primary);
+      }
+    </style>
+</head>
+<body class="bg-background font-sans antialiased text-foreground">
+    <canvas id="particle-canvas"></canvas>
+
+    <header class="fixed top-0 inset-x-0 z-40 glass-header">
+      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div class="relative flex h-16 items-center justify-center">
+          <div class="absolute left-0 flex items-center">
+            <div class="relative hidden md:block">
+              <i
+                data-lucide="search"
+                class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
+              ></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search..."
+                class="w-64 rounded-md border border-border bg-white/50 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+          </div>
+          <div class="flex items-center">
+            <a href="/" class="text-3xl font-serif font-bold text-primary"
+              >SAMPARK</a
+            >
+          </div>
+          <div class="absolute right-0 flex items-center">
+            <a
+              href="/logout"
+              class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft flex items-center gap-2"
+            >
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="pt-16">
+        <nav class="bg-card border-b border-border px-4 py-2 sticky top-16 z-30">
+            <div class="max-w-screen-xl mx-auto flex justify-center items-center">
+                <div class="flex gap-4 overflow-x-auto">
+                    <a href="/alumni/dashboard" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="layout-dashboard"></i>Feed
+                    </a>
+                    <a href="/alumni/leaderboard" class="nav-link active flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="trophy"></i>Leaderboard
+                    </a>
+                    <a href="/alumni/network" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="users"></i>Network
+                    </a>
+                    <a href="/alumni/jobs" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="briefcase"></i>Jobs
+                    </a>
+                    <a href="/alumni/chat" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="message-square"></i>Messaging
+                    </a>
+                    <a href="/alumni/event" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold">
+                        <i data-lucide="calendar-plus"></i>Create Event
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-screen-xl mx-auto p-6 md:p-8">
+            <div class="text-center mb-12 animate-fade-in-up">
+                <h1 class="text-6xl md:text-7xl font-serif text-foreground leading-tight mb-2">Elite Contributor Ranking</h1>
+                <p class="mt-4 text-lg text-gray-600">Celebrate the alumni making the biggest impact on our network.</p>
+            </div>
+
+            <% 
+                const definedUsers = typeof users !== 'undefined' ? users : [];
+                const definedCurrentUserId = typeof currentUserId !== 'undefined' ? currentUserId : null;
+                let maxPoints = 1;
+                if (definedUsers.length > 0 && definedUsers[0].points) {
+                    maxPoints = definedUsers[0].points;
+                }
+                const rank1 = definedUsers[0];
+                const rank2 = definedUsers[1];
+                const rank3 = definedUsers[2];
+                const remainingUsers = definedUsers.slice(3);
+
+                function getProgressWidth(points, max) {
+                    const validPoints = points || 0;
+                    if (max === 0 || validPoints === 0) return '0%';
+                    const percentage = (validPoints / max) * 100;
+                    return `${Math.max(percentage, 5)}%`; 
+                }
+            %>
+
+            <!-- Top 3 Podium Section -->
+            <% if (rank1 || rank2 || rank3) { %>
+            <div class="flex flex-col sm:flex-row justify-center items-end space-y-8 sm:space-y-0 sm:space-x-6 mb-16 animate-fade-in-up" style="animation-delay: 150ms;">
+                <% if (rank2) { %><div class="w-full sm:w-1/3 flex flex-col items-center p-6 rounded-xl shadow-soft transition-transform hover:-translate-y-1 bg-card border-t-8 border-rank-silver"><div class="text-4xl font-serif text-rank-silver font-bold mb-2">#2</div><p class="text-xl font-semibold text-card-foreground text-center"><%= rank2.name %></p><p class="text-sm text-gray-500 mb-3">Silver Achiever</p><p class="text-3xl font-serif font-bold text-rank-silver"><%= (rank2.points || 0).toLocaleString() %></p></div><% } %>
+                <% if (rank1) { %><div class="w-full sm:w-1/3 flex flex-col items-center p-8 rounded-xl shadow-lift transition-transform scale-105 bg-card border-t-8 border-rank-gold"><i data-lucide="crown" class="w-12 h-12 text-rank-gold mb-2"></i><div class="text-5xl font-serif text-rank-gold font-extrabold mb-2">#1</div><p class="text-2xl font-bold text-foreground text-center"><%= rank1.name %></p><p class="text-base text-gray-500 mb-3 font-semibold uppercase tracking-wider">ALUMNI CHAMPION</p><p class="text-4xl font-serif font-extrabold text-rank-gold"><%= (rank1.points || 0).toLocaleString() %></p></div><% } %>
+                <% if (rank3) { %><div class="w-full sm:w-1/3 flex flex-col items-center p-6 rounded-xl shadow-soft transition-transform hover:-translate-y-1 bg-card border-t-8 border-rank-bronze"><div class="text-4xl font-serif text-rank-bronze font-bold mb-2">#3</div><p class="text-xl font-semibold text-card-foreground text-center"><%= rank3.name %></p><p class="text-sm text-gray-500 mb-3">Bronze Contributor</p><p class="text-3xl font-serif font-bold text-rank-bronze"><%= (rank3.points || 0).toLocaleString() %></p></div><% } %>
+            </div>
+            <% } %>
+
+            <!-- Main Leaderboard Table -->
+            <div class="bg-card rounded-xl shadow-soft overflow-hidden animate-fade-in-up" style="animation-delay: 300ms;">
+                <% if (remainingUsers.length > 0) { %>
+                    <!-- Leaderboard Header -->
+                    <div class="grid grid-cols-12 gap-4 py-4 px-6 items-center text-foreground bg-background font-semibold uppercase tracking-wider text-xs sm:text-sm border-b-2 border-primary/20">
+                        <div class="col-span-1">Rank</div>
+                        <div class="col-span-8 sm:col-span-4">Alumni Name</div>
+                        <div class="hidden sm:block sm:col-span-4">Contribution Progress</div>
+                        <div class="col-span-3 text-right">Total Points</div>
+                    </div>
+
+                    <!-- Leaderboard Dynamic Rows Container -->
+                    <div class="divide-y divide-border">
+                        <% remainingUsers.forEach((user, index) => { 
+                            const rank = index + 4;
+                            const isCurrentUser = user.id === definedCurrentUserId;
+                            const rowHighlight = isCurrentUser ? 'bg-primary/5 border-l-4 border-primary font-semibold' : '';
+                            const progressWidth = getProgressWidth(user.points, maxPoints);
+                        %>
+                        <div class="grid grid-cols-12 gap-4 py-3 px-6 items-center transition-colors hover:bg-background <%= rowHighlight %> text-sm sm:text-base">
+                            <div class="col-span-1 text-lg text-gray-500">#<%= rank %></div>
+                            <div class="col-span-8 sm:col-span-4 flex items-center space-x-4">
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center bg-secondary/20 text-secondary-dark font-semibold shrink-0"><%= user.name.charAt(0) %></div>
+                                <span class="truncate <%= isCurrentUser ? 'font-bold text-foreground' : 'text-card-foreground' %>">
+                                    <%= user.name %> 
+                                    <% if (isCurrentUser) { %><span class="text-primary text-xs font-bold ml-1">(You)</span><% } %>
+                                </span>
+                            </div>
+                            <div class="hidden sm:block sm:col-span-4">
+                                <div class="w-full bg-background h-2 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-secondary to-primary" style="width: <%= progressWidth %>;"></div>
+                                </div>
+                            </div>
+                            <div class="col-span-3 text-right text-lg font-serif font-semibold text-foreground"><%= (user.points || 0).toLocaleString() %></div>
+                        </div>
+                        <% }) %>
+                    </div>
+                <% } else if (definedUsers.length > 0) { %>
+                    <div class="text-center py-16 text-gray-500"><p>Top contributors shine above!</p></div>
+                <% } else { %>
+                    <div class="text-center py-20 text-gray-500"><p>The leaderboard is waiting for its first champion.</p></div>
+                <% } %>
+
+                <div class="p-4 text-center text-xs text-gray-500 border-t border-border bg-background/50">
+                    <p>Points are awarded for community engagement. Rankings update in real-time.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        lucide.createIcons();
+
+        // Particle Animation Script
+        const canvas = document.getElementById("particle-canvas");
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particles = [];
+            const particleColor = "rgba(161, 98, 7, 0.4)";
+
+            class Particle {
+              constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 1.5 + 1;
+                this.speedX = Math.random() * 0.3 - 0.15;
+                this.speedY = Math.random() * 0.3 - 0.15;
+              }
+              update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.1) this.size -= 0.005;
+              }
+              draw() {
+                ctx.fillStyle = particleColor;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+            function initParticles() {
+              for (let i = 0; i < 50; i++) {
+                particles.push(
+                  new Particle(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height
+                  )
+                );
+              }
+            }
+            function animateParticles() {
+              if (!canvas) return;
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].size <= 0.1) {
+                  particles.splice(i, 1);
+                  i--;
+                  particles.push(
+                    new Particle(
+                      Math.random() * canvas.width,
+                      Math.random() * canvas.height
+                    )
+                  );
+                }
+              }
+              requestAnimationFrame(animateParticles);
+            }
+            initParticles();
+            animateParticles();
+
+            window.addEventListener("resize", () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                particles = [];
+                initParticles();
+            });
+        }
+      });
+    </script>
+</body>
+</html>
+

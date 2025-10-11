@@ -4,17 +4,18 @@ const Post = require('../models/post-model');
 const alumniModel = require('../models/alumni-model');
 const isLoggedIn = require('../middlewares/isLoggedin');
 const multer = require("multer");
+const isVerified = require('../middlewares/isVerified');
 
 // Use memoryStorage to handle files as buffers, which is ideal for storing in MongoDB
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-
+const POST_POINTS = 100;
 /**
  * @route   POST /post
  * @desc    Create a new post
  * @access  Private (Alumni)
  */
-router.post("/", isLoggedIn, upload.single("image"), async (req, res) => {
+router.post("/", isLoggedIn, isVerified, upload.single("image"), async (req, res) => {
     try {
         const newPost = new Post({
             content: req.body.content,
@@ -30,7 +31,10 @@ router.post("/", isLoggedIn, upload.single("image"), async (req, res) => {
         // CORRECTION: After creating the post, add its ID to the author's posts array.
         // This keeps the user's post list in sync.
         await alumniModel.findByIdAndUpdate(req.user._id, { $push: { posts: newPost._id } });
-
+        await alumniModel.findByIdAndUpdate(
+            req.user._id,
+            { $inc: { points: POST_POINTS } }
+        );
         res.redirect(`/${req.user.role}/dashboard`);
     } catch (err) {
         console.error("❌ Error creating post:", err);
@@ -43,7 +47,7 @@ router.post("/", isLoggedIn, upload.single("image"), async (req, res) => {
  * @desc    Like or unlike a post
  * @access  Private
  */
-router.post('/like/:id', isLoggedIn, async (req, res) => {
+router.post('/like/:id', isLoggedIn, isVerified, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ error: "Post not found" });
@@ -75,7 +79,7 @@ router.post('/like/:id', isLoggedIn, async (req, res) => {
  * @desc    Show the form to edit a post
  * @access  Private (Author only)
  */
-router.get('/edit/:id', isLoggedIn, async (req, res) => {
+router.get('/edit/:id', isLoggedIn, isVerified, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id).populate("author");
         if (!post) return res.status(404).send("Post not found");
@@ -98,7 +102,7 @@ router.get('/edit/:id', isLoggedIn, async (req, res) => {
  * @access  Private (Author only)
  */
 // CORRECTION: Added multer middleware 'upload.single("image")' to handle file uploads on this route.
-router.post('/edit/:id', isLoggedIn, upload.single("image"), async (req, res) => {
+router.post('/edit/:id', isLoggedIn, isVerified, upload.single("image"), async (req, res) => {
     try {
         const content = req.body.content.trim();
         const post = await Post.findById(req.params.id);
@@ -129,7 +133,7 @@ router.post('/edit/:id', isLoggedIn, upload.single("image"), async (req, res) =>
  * @desc    Delete a post
  * @access  Private (Author only)
  */
-router.post('/delete/:id', isLoggedIn, async (req, res) => {
+router.post('/delete/:id', isLoggedIn, isVerified, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).send("Post not found");
