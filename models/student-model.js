@@ -24,6 +24,8 @@ const studentSchema = new Schema({
         default: 'Pending'
     },
 
+
+
     // --- NEW/UPDATED FIELDS FOR CONNECTIONS ---
 
     // Stores IDs of alumni the student has sent a request to.
@@ -46,6 +48,14 @@ const studentSchema = new Schema({
         type: [String], // Defines an array of strings
         default: []
     },
+    
+    linkedin: { type: String, default: "" },
 });
 
+studentSchema.pre('validate', function (next) {
+    if (this.linkedinId) {
+        this.$ignore('password');
+    }
+    next();
+});
 module.exports = mongoose.model("student", studentSchema);

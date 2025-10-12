@@ -17,6 +17,7 @@ const alumniSchema = new Schema({
         type: String,
         required: true
     },
+    linkedinId: { type: String },
     graduationYear: Number,
     branch: String,
     currentCompany: { type: String, default: "" },
@@ -62,6 +63,14 @@ const alumniSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "student" // Correctly referencing the 'student' model
     }]
+});
+
+
+alumniSchema.pre('validate', function (next) {
+    if (this.linkedinId) {
+        this.$ignore('password');
+    }
+    next();
 });
 
 module.exports = mongoose.model("alumni", alumniSchema);

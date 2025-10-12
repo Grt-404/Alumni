@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require("express");
+const app = express();
 const http = require('http');
 const { Server } = require("socket.io");
 const path = require('path');
@@ -20,7 +21,7 @@ const collegeRouter = require("./routes/college");
 const indexRouter = require("./routes/index");
 const postsRoutes = require('./routes/post');
 
-const app = express();
+
 const server = http.createServer(app);
 const io = new Server(server);
 

@@ -114,33 +114,51 @@
     </style>
   </head>
   <body class="bg-background font-sans antialiased text-foreground">
-
-    <% if (user && (user.status === 'Pending' || user.status === 'Rejected')) { %>
+    <% if (user && (user.status === 'Pending' || user.status === 'Rejected')) {
+    %>
     <!-- Status Modal -->
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-card rounded-xl shadow-lift max-w-md w-full p-8 text-center animate-fade-in-up">
-            <% if (user.status === 'Pending') { %>
-                <!-- Pending Content -->
-                <i data-lucide="hourglass" class="w-16 h-16 text-secondary mx-auto mb-4 animate-pulse"></i>
-                <h2 class="text-2xl font-serif font-bold text-foreground mb-2">Verification in Progress</h2>
-                <p class="text-gray-600">
-                    Your account is currently under review by the college administration. 
-                    You will be able to access the dashboard once your account is approved. 
-                    We appreciate your patience!
-                </p>
-            <% } else if (user.status === 'Rejected') { %>
-                <!-- Rejected Content -->
-                <i data-lucide="x-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
-                <h2 class="text-2xl font-serif font-bold text-foreground mb-2">Account Request Rejected</h2>
-                <p class="text-gray-600">
-                    We're sorry, but your request to join the alumni network has been rejected by the college administration. 
-                    If you believe this is an error, please contact support.
-                </p>
-                <a href="/logout" class="mt-6 inline-block px-5 py-2 rounded-lg bg-primary text-primary-foreground shadow-soft hover:bg-primary/90 transition-colors font-semibold">
-                    Logout
-                </a>
-            <% } %>
-        </div>
+    <div
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-card rounded-xl shadow-lift max-w-md w-full p-8 text-center animate-fade-in-up"
+      >
+        <% if (user.status === 'Pending') { %>
+        <!-- Pending Content -->
+        <i
+          data-lucide="hourglass"
+          class="w-16 h-16 text-secondary mx-auto mb-4 animate-pulse"
+        ></i>
+        <h2 class="text-2xl font-serif font-bold text-foreground mb-2">
+          Verification in Progress
+        </h2>
+        <p class="text-gray-600">
+          Your account is currently under review by the college administration.
+          You will be able to access the dashboard once your account is
+          approved. We appreciate your patience!
+        </p>
+        <% } else if (user.status === 'Rejected') { %>
+        <!-- Rejected Content -->
+        <i
+          data-lucide="x-circle"
+          class="w-16 h-16 text-red-500 mx-auto mb-4"
+        ></i>
+        <h2 class="text-2xl font-serif font-bold text-foreground mb-2">
+          Account Request Rejected
+        </h2>
+        <p class="text-gray-600">
+          We're sorry, but your request to join the alumni network has been
+          rejected by the college administration. If you believe this is an
+          error, please contact support.
+        </p>
+        <a
+          href="/logout"
+          class="mt-6 inline-block px-5 py-2 rounded-lg bg-primary text-primary-foreground shadow-soft hover:bg-primary/90 transition-colors font-semibold"
+        >
+          Logout
+        </a>
+        <% } %>
+      </div>
     </div>
     <% } %>
 
@@ -257,7 +275,9 @@
                   <%= user.name %>
                 </h3>
                 <p class="text-sm text-gray-500">
-                  <%= user.designation || 'Position not set' %>
+                  <%= user.designation && user.currentCompany ? user.designation
+                  + ' | ' + user.currentCompany : (user.designation ||
+                  user.currentCompany || 'Position not set') %>
                 </p>
               </div>
               <div class="border-t border-border p-4">
@@ -467,30 +487,45 @@
 
           <!-- Right Column: Opportunities -->
           <aside class="lg:col-span-1 lg:sticky lg:top-36 self-start space-y-6">
-          <div class="bg-card rounded-xl shadow-soft p-6 animate-fade-in-up" style="animation-delay: 300ms">
-    <h3 class="text-xl font-serif text-foreground mb-4">
-        Connection Requests
-    </h3>
-    <div id="invitations-list" class="space-y-4">
-        <% if (invitations && invitations.length > 0) { %>
-            <% invitations.forEach(student => { %>
-                <div class="invitation-card pt-4 border-t border-border first:pt-0 first:border-none" data-student-id="<%= student._id %>">
-                    <p class="font-semibold text-card-foreground"><%= student.fullname %></p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <button data-action="accept" data-student-id="<%= student._id %>" class="respond-btn w-full px-3 py-1.5 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition-colors">
-                            Accept
-                        </button>
-                        <button data-action="reject" data-student-id="<%= student._id %>" class="respond-btn w-full px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md text-sm font-semibold hover:bg-gray-300 transition-colors">
-                            Reject
-                        </button>
-                    </div>
+            <div
+              class="bg-card rounded-xl shadow-soft p-6 animate-fade-in-up"
+              style="animation-delay: 300ms"
+            >
+              <h3 class="text-xl font-serif text-foreground mb-4">
+                Connection Requests
+              </h3>
+              <div id="invitations-list" class="space-y-4">
+                <% if (invitations && invitations.length > 0) { %> <%
+                invitations.forEach(student => { %>
+                <div
+                  class="invitation-card pt-4 border-t border-border first:pt-0 first:border-none"
+                  data-student-id="<%= student._id %>"
+                >
+                  <p class="font-semibold text-card-foreground">
+                    <%= student.fullname %>
+                  </p>
+                  <div class="mt-3 flex items-center gap-2">
+                    <button
+                      data-action="accept"
+                      data-student-id="<%= student._id %>"
+                      class="respond-btn w-full px-3 py-1.5 bg-green-600 text-white rounded-md text-sm font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      data-action="reject"
+                      data-student-id="<%= student._id %>"
+                      class="respond-btn w-full px-3 py-1.5 bg-gray-200 text-gray-700 rounded-md text-sm font-semibold hover:bg-gray-300 transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </div>
                 </div>
-            <% }) %>
-        <% } else { %>
-            <p class="text-gray-500 text-sm">No new connection requests.</p>
-        <% } %>
-    </div>
-</div>
+                <% }) %> <% } else { %>
+                <p class="text-gray-500 text-sm">No new connection requests.</p>
+                <% } %>
+              </div>
+            </div>
             <div
               class="bg-card rounded-xl shadow-soft p-6 animate-fade-in-up"
               style="animation-delay: 400ms"
@@ -528,45 +563,51 @@
     </main>
 
     <script>
-    // Add this inside your document.addEventListener("DOMContentLoaded", () => { ... });
+      // Add this inside your document.addEventListener("DOMContentLoaded", () => { ... });
 
-document.getElementById('invitations-list').addEventListener('click', function(event) {
-    // Check if a respond button was clicked
-    if (event.target.classList.contains('respond-btn')) {
-        const button = event.target;
-        const studentId = button.dataset.studentId;
-        const action = button.dataset.action; // 'accept' or 'reject'
-        
-        // Find the parent card to remove it later
-        const invitationCard = button.closest('.invitation-card');
+      document
+        .getElementById("invitations-list")
+        .addEventListener("click", function (event) {
+          // Check if a respond button was clicked
+          if (event.target.classList.contains("respond-btn")) {
+            const button = event.target;
+            const studentId = button.dataset.studentId;
+            const action = button.dataset.action; // 'accept' or 'reject'
 
-        fetch(`/alumni/connections/respond/${studentId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ action: action })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                // Success! Remove the invitation card from the UI
-                invitationCard.style.transition = 'opacity 0.5s';
-                invitationCard.style.opacity = '0';
-                setTimeout(() => {
+            // Find the parent card to remove it later
+            const invitationCard = button.closest(".invitation-card");
+
+            fetch(`/alumni/connections/respond/${studentId}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ action: action }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.message) {
+                  // Success! Remove the invitation card from the UI
+                  invitationCard.style.transition = "opacity 0.5s";
+                  invitationCard.style.opacity = "0";
+                  setTimeout(() => {
                     invitationCard.remove();
                     // Optional: Check if the list is now empty and show the "No new requests" message
-                    if (document.getElementById('invitations-list').children.length === 0) {
-                        document.getElementById('invitations-list').innerHTML = '<p class="text-gray-500 text-sm">No new connection requests.</p>';
+                    if (
+                      document.getElementById("invitations-list").children
+                        .length === 0
+                    ) {
+                      document.getElementById("invitations-list").innerHTML =
+                        '<p class="text-gray-500 text-sm">No new connection requests.</p>';
                     }
-                }, 500);
-            } else {
-                console.error("Failed to respond:", data.error);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-});
+                  }, 500);
+                } else {
+                  console.error("Failed to respond:", data.error);
+                }
+              })
+              .catch((error) => console.error("Error:", error));
+          }
+        });
       document.addEventListener("DOMContentLoaded", () => {
         lucide.createIcons();
 

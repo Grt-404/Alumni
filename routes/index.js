@@ -4,6 +4,7 @@ const isLoggedin = require('../middlewares/isLoggedin');
 const alumniModel = require("../models/alumni-model");
 const collegeModel = require('../models/college-model');
 const studentModel = require('../models/student-model');
+const passport = require('passport');
 const authController = require("../controllers/authController");
 
 router.get("/", (req, res) => {
@@ -17,6 +18,12 @@ router.post("/login", (req, res) => {
 });
 router.get("/register", (req, res) => {
     res.render("signup");
-})
+});
+
+router.get('/auth/linkedin/callback', authController.handleLinkedInCallback);
+router.get('/auth/linkedin/:role', authController.redirectToLinkedIn);
+
+
+
 router.get("/logout", authController.logout);
 module.exports = router;
