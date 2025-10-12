@@ -20,8 +20,14 @@ router.get("/register", (req, res) => {
     res.render("signup");
 });
 
+router.get('/auth/complete-profile', isLoggedin, authController.renderCompleteProfile);
+
+router.post('/auth/complete-profile', isLoggedin, authController.completeProfile);
+
 router.get('/auth/linkedin/callback', authController.handleLinkedInCallback);
 router.get('/auth/linkedin/:role', authController.redirectToLinkedIn);
+
+
 
 
 

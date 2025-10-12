@@ -12,7 +12,9 @@ const studentSchema = new Schema({
     contact: Number,
     password: {
         type: String,
-        required: true
+        required: function() {
+            return !this.linkedinId;
+        }
     },
     image: {
         type: Buffer,
@@ -24,6 +26,11 @@ const studentSchema = new Schema({
         default: 'Pending'
     },
 
+    linkedinId: {
+        type: String,
+        unique: true,
+        sparse: true // Allows multiple students to not have a LinkedIn ID
+    },
 
 
     // --- NEW/UPDATED FIELDS FOR CONNECTIONS ---
@@ -52,10 +59,4 @@ const studentSchema = new Schema({
     linkedin: { type: String, default: "" },
 });
 
-studentSchema.pre('validate', function (next) {
-    if (this.linkedinId) {
-        this.$ignore('password');
-    }
-    next();
-});
 module.exports = mongoose.model("student", studentSchema);
