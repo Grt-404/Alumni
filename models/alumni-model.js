@@ -15,7 +15,6 @@ const alumniSchema = new Schema({
     },
     password: {
         type: String,
-        // Password is not required if linkedinId is present
     },
     linkedinId: { type: String },
     graduationYear: Number,
@@ -23,7 +22,6 @@ const alumniSchema = new Schema({
     currentCompany: { type: String, default: "" },
     designation: { type: String, default: "" },
     location: { type: String, default: "" },
-    // FIX: Removed maxlength validation to allow for longer LinkedIn bios
     bio: { type: String, default: "" },
     linkedin: { type: String, default: "" },
     role: {
@@ -64,14 +62,14 @@ const alumniSchema = new Schema({
     }]
 });
 
-
+// THIS BLOCK HAS BEEN REMOVED
+/*
 alumniSchema.pre('validate', function (next) {
     if (this.linkedinId) {
-        // This makes the password field optional if a linkedinId exists
         this.$ignore('password');
     }
     next();
 });
+*/
 
 module.exports = mongoose.model("alumni", alumniSchema);
-

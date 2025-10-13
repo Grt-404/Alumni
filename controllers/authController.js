@@ -6,6 +6,7 @@ const { generateToken } = require('../utils/generateToken');
 const axios = require('axios');
 const { fetchLinkedInProfile } = require('../utils/fetchLinkedinProfile');
 
+
 async function fetchImageBuffer(url) {
     console.log(`Attempting to download image from: ${url}`);
     try {
@@ -204,7 +205,7 @@ module.exports.handleLinkedInCallback = async (req, res) => {
             linkedinId: userInfo.sub,
             email: userInfo.email,
             role,
-            status: 'pending',
+            status: 'Pending',
             image: null
         };
 
@@ -251,38 +252,68 @@ module.exports.handleLinkedInCallback = async (req, res) => {
     }
 };
 
-module.exports.renderCompleteProfile = (req, res) => {
-    res.render('complete-login', { user: req.user });
+module.exports.renderCompleteProfile = async (req, res) => {
+    try {
+        // Fetch all colleges from the database
+        const colleges = await collegeModel.find({});
+        // Render the page and pass both the user and the list of colleges
+        res.render("complete-login", { user: req.user, colleges: colleges });
+    } catch (error) {
+        console.error("Error rendering complete profile page:", error);
+        req.flash("error", "There was a problem loading the page.");
+        res.redirect("/login");
+    }
 };
+
+// In controllers/authController.js
 
 module.exports.completeProfile = async (req, res) => {
     try {
-        const { password, linkedin } = req.body;
-        const user = await (req.user.role === 'alumni' ? alumniModel : studentModel).findById(req.user._id);
+        // 1. Destructure "college" from the request body
+        const { password, linkedin, college } = req.body;
+        const user = await (req.user.role === "alumni"
+            ? alumniModel
+            : studentModel
+        ).findById(req.user._id);
 
         if (!user) {
             req.flash("error", "User not found.");
-            return res.redirect('/login');
+            return res.redirect("/login");
         }
 
+        // 2. Add the selected college to the user's profile
+        if (college) {
+            user.college = college;
+        }
+
+        // Hash and save the new password
         if (password) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
         }
 
-        if (user.role === 'alumni' && linkedin) {
+        // If alumnus and linkedin URL is provided, save it and trigger scrape
+        if (user.role === "alumni" && linkedin) {
             user.linkedin = linkedin;
-            scrapeAndEnrichProfile(user._id, user.linkedin, user.role);
+            // Scrape in the background
+            scrapeAndEnrichProfile(user._id, user.linkedin);
         }
 
         await user.save();
 
+        // 3. Add the user to the college's list of students/alumni
+        if ((user.role === "student" || user.role === "alumni") && college) {
+            const userRoleField = user.role === "student" ? "students" : "alumni";
+            await collegeModel.findByIdAndUpdate(college, {
+                $push: { [userRoleField]: user._id },
+            });
+        }
+
         req.flash("success", "Your profile is complete!");
         res.redirect(`/${user.role}/dashboard`);
-
     } catch (error) {
         console.error("Error completing profile:", error);
         req.flash("error", "There was a problem completing your profile.");
-        res.redirect('/login');
+        res.redirect("/auth/complete-profile");
     }
 };
