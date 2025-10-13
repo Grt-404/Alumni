@@ -174,6 +174,17 @@
                 required
               />
             </div>
+             <div>
+                <label for="college" class="block text-sm font-semibold text-gray-700 mb-2">College</label>
+                <select name="college" id="college" class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-shadow" required>
+                    <option value="" disabled selected>Select your college</option>
+                    <% if (typeof colleges !== 'undefined' && colleges.length > 0) { %>
+                        <% colleges.forEach(college => { %>
+                            <option value="<%= college._id %>"><%= college.fullname %></option>
+                        <% }); %>
+                    <% } %>
+                </select>
+            </div>
             <div>
               <label
                 for="password"

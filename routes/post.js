@@ -10,6 +10,7 @@ const isVerified = require('../middlewares/isVerified');
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const POST_POINTS = 100;
+
 /**
  * @route   POST /post
  * @desc    Create a new post
@@ -20,6 +21,7 @@ router.post("/", isLoggedIn, isVerified, upload.single("image"), async (req, res
         const newPost = new Post({
             content: req.body.content,
             author: req.user._id,
+            college: req.user.college // Associate post with the author's college
         });
 
         if (req.file) {
@@ -28,8 +30,7 @@ router.post("/", isLoggedIn, isVerified, upload.single("image"), async (req, res
 
         await newPost.save();
 
-        // CORRECTION: After creating the post, add its ID to the author's posts array.
-        // This keeps the user's post list in sync.
+        // Add the post's ID to the author's posts array.
         await alumniModel.findByIdAndUpdate(req.user._id, { $push: { posts: newPost._id } });
         await alumniModel.findByIdAndUpdate(
             req.user._id,
@@ -52,6 +53,11 @@ router.post('/like/:id', isLoggedIn, isVerified, async (req, res) => {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ error: "Post not found" });
 
+        // Security: Ensure the user and the post belong to the same college
+        if (post.college.toString() !== req.user.college.toString()) {
+            return res.status(403).json({ error: "You can only interact with posts from your college." });
+        }
+
         const userId = req.user._id;
         const idx = post.likes.findIndex(id => String(id) === String(userId));
 
@@ -66,7 +72,6 @@ router.post('/like/:id', isLoggedIn, isVerified, async (req, res) => {
 
         await post.save();
 
-        // This route correctly sends JSON back, which is great for client-side updates
         res.json({ liked, likesCount: post.likes.length });
     } catch (err) {
         console.error("❌ Error liking post:", err);
@@ -89,7 +94,12 @@ router.get('/edit/:id', isLoggedIn, isVerified, async (req, res) => {
             return res.status(403).send("Unauthorized");
         }
 
-        res.render("edit-post", { post, user: req.user }); // Pass user object for consistency
+        // Security: Redundant check, but good practice. Ensures post is from user's college.
+        if (post.college.toString() !== req.user.college.toString()) {
+            return res.status(403).send("Unauthorized");
+        }
+
+        res.render("edit-post", { post, user: req.user });
     } catch (err) {
         console.error("❌ Error fetching post for edit:", err);
         res.status(500).send("Server error");
@@ -101,20 +111,20 @@ router.get('/edit/:id', isLoggedIn, isVerified, async (req, res) => {
  * @desc    Update a post
  * @access  Private (Author only)
  */
-// CORRECTION: Added multer middleware 'upload.single("image")' to handle file uploads on this route.
 router.post('/edit/:id', isLoggedIn, isVerified, upload.single("image"), async (req, res) => {
     try {
         const content = req.body.content.trim();
         const post = await Post.findById(req.params.id);
 
         if (!post) return res.status(404).send("Post not found");
-        if (String(post.author) !== String(req.user._id)) {
+
+        // Authorization checks
+        if (String(post.author) !== String(req.user._id) || post.college.toString() !== req.user.college.toString()) {
             return res.status(403).send("Unauthorized");
         }
 
         post.content = content;
 
-        // CORRECTION: Check if a new file was uploaded and update the post's image buffer.
         if (req.file) {
             post.image = req.file.buffer;
         }
@@ -138,13 +148,14 @@ router.post('/delete/:id', isLoggedIn, isVerified, async (req, res) => {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).send("Post not found");
 
-        if (String(post.author) !== String(req.user._id)) {
+        // Authorization checks
+        if (String(post.author) !== String(req.user._id) || post.college.toString() !== req.user.college.toString()) {
             return res.status(403).send("Unauthorized");
         }
 
         await Post.findByIdAndDelete(req.params.id);
 
-        // Also remove from alumni.posts array to maintain data integrity
+        // Also remove from alumni.posts array
         await alumniModel.findByIdAndUpdate(req.user._id, { $pull: { posts: req.params.id } });
 
         res.redirect('/alumni/dashboard');

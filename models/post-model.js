@@ -8,6 +8,11 @@ const postSchema = new Schema({
         ref: 'alumni',
         required: true
     },
+    college: {
+        type: Schema.Types.ObjectId,
+        ref: 'college',
+        required: true
+    },
     content: {
         type: String,
         required: true,

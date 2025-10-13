@@ -7,11 +7,15 @@ const collegeSchema = new Schema({
     email: String,
 
 
-    alumni: {
-        type: Array,
-        default: []
-    },
 
+    alumni: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'alumni'
+    }],
+    students: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'student'
+    }],
     image: {
         type: Buffer,
         default: "/public/images/uploads/default.jpg"

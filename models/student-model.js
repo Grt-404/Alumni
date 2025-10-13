@@ -20,6 +20,10 @@ const studentSchema = new Schema({
         type: Buffer,
         required: false
     },
+    college: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'college'
+    },
     status: {
         type: String,
         enum: ['Pending', 'Verified', 'Rejected'],
@@ -55,7 +59,7 @@ const studentSchema = new Schema({
         type: [String], // Defines an array of strings
         default: []
     },
-    
+
     linkedin: { type: String, default: "" },
 });
 

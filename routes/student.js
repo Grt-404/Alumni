@@ -8,10 +8,10 @@ const EventRequest = require("../models/eventRequest-model");
 const Student = require("../models/student-model");
 const Alumni = require("../models/alumni-model");
 const Event = require("../models/event-model");
+const collegeModel = require('../models/college-model');
 const multer = require("multer");
 const upload = multer();
 
-// routes/student.js
 
 // ROUTE TO SEND A CONNECTION REQUEST
 router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
@@ -22,7 +22,6 @@ router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
     const student = await Student.findById(studentId);
     const alumni = await Alumni.findById(alumniId);
 
-    // --- NEW FIX: CHECK IF STUDENT AND ALUMNI EXIST ---
     if (!student) {
       return res.status(404).json({ error: "Logged-in student not found." });
     }
@@ -30,17 +29,18 @@ router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
       return res.status(404).json({ error: "Alumni not found." });
     }
 
-    // --- VALIDATION ---
-    // 1. Check if a request was already sent
+    // Ensure both users are from the same college
+    if (student.college.toString() !== alumni.college.toString()) {
+      return res.status(403).json({ error: "You can only connect with alumni from your own college." });
+    }
+
     if (student.sentRequests.includes(alumniId) || alumni.invitations.includes(studentId)) {
       return res.status(400).json({ error: 'Connection request already sent.' });
     }
-    // 2. Check if they are already connected
     if (student.connections.includes(alumniId) || alumni.connections.includes(studentId)) {
       return res.status(400).json({ error: 'You are already connected.' });
     }
 
-    // --- UPDATE MODELS ---
     student.sentRequests.push(alumniId);
     alumni.invitations.push(studentId);
 
@@ -54,97 +54,91 @@ router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-router.get("/register", (req, res) => {
-  res.render("register-student");
+
+router.get("/register", async (req, res) => {
+  try {
+    const colleges = await collegeModel.find({});
+    res.render("register-student", { colleges });
+  } catch (error) {
+    console.error("Error fetching colleges for registration:", error);
+    res.redirect('/register');
+  }
 });
+
 router.get('/chat/:recipientId', isLoggedIn, async (req, res) => {
   try {
-    // 1. Get the logged-in student and their list of connections
     const student = await Student.findById(req.user._id).populate('connections');
-
-    // 2. Get the profile of the alumni they want to chat with
     const recipient = await Alumni.findById(req.params.recipientId);
 
-    // 3. SECURITY CHECK: Make sure the recipient exists and is in the student's connection list.
-    // The .some() method checks if at least one connection's ID matches the recipient's ID.
-    if (!recipient || !student.connections.some(conn => conn._id.equals(recipient._id))) {
-      console.log("Chat access denied: User is not a connection.");
-      // If they aren't connected, redirect them away.
+    if (!recipient || !student.connections.some(conn => conn._id.equals(recipient._id)) || recipient.college.toString() !== req.user.college.toString()) {
+      console.log("Chat access denied: User is not a connection or from the same college.");
       return res.redirect('/student/connections');
     }
 
-    // 4. Fetch the chat history between these two specific users
     const messages = await Message.find({
       $or: [
         { from: student._id, to: recipient._id },
         { from: recipient._id, to: student._id }
       ]
-    }).sort({ createdAt: 'asc' }); // Sort messages by oldest first
+    }).sort({ createdAt: 'asc' });
 
-    // 5. Render the chat page and pass all necessary data
     res.render('chat', {
-      user: req.user,                  // For identifying the sender in the UI
-      connections: student.connections, // For the sidebar list
-      activeChat: recipient,           // To show who the current chat is with
-      messages: messages               // The conversation history
+      user: req.user,
+      connections: student.connections,
+      activeChat: recipient,
+      messages: messages
     });
-
   } catch (error) {
     console.error("Error loading chat page:", error);
     res.redirect('/student/dashboard');
   }
 });
+
 router.post("/register", (req, res) => {
   req.body.role = "student";
   authController.registerUser(req, res);
 });
-// routes/student.js
 
-// ... your other routes
-
-// ROUTE TO DISPLAY THE CONNECTIONS PAGE (Corrected)
 router.get('/connections', isLoggedIn, async (req, res) => {
   try {
     const student = await Student.findById(req.user._id)
       .populate('connections');
 
-    // --- FIX: Add a check to ensure the student exists ---
     if (!student) {
       console.error(`Connections page error: Student not found with ID: ${req.user._id}`);
       req.flash('error', 'Your session has expired. Please log in again.');
-      return res.redirect('/login'); // Redirect to a safe login page
+      return res.redirect('/login');
     }
 
     res.render('connections', {
       user: req.user,
       connections: student.connections
     });
-
   } catch (error) {
     console.error("Error fetching connections:", error);
-    // Also handle generic errors by redirecting
     req.flash('error', 'An error occurred while loading your connections.');
     res.redirect('/student/dashboard');
   }
 });
 
-// ... rest of your routes
 router.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
-    const posts = await Post.find().populate("author");
-    const AlumniList = await Alumni.find({ status: "Verified" }).sort({ createdAt: -1 })
-
+    const posts = await Post.find().populate({
+      path: 'author',
+      match: { college: req.user.college }
+    });
+    const AlumniList = await Alumni.find({ status: "Verified", college: req.user.college }).sort({ createdAt: -1 });
     const today = new Date();
-
-    const events = await Event.find({ date: { $gte: today } }).sort({
-      date: 1,
-    }).limit(3);
+    const events = await Event.find({ date: { $gte: today } }).populate({
+      path: 'createdBy',
+      match: { college: req.user.college }
+    }).sort({ date: 1 }).limit(3);
 
     res.render("student-dashboard", {
       user: req.user,
-      posts,
+      posts: posts.filter(p => p.author),
       AlumniList,
-      events
+      events: events.filter(e => e.createdBy)
     });
   } catch (err) {
     console.error("❌ Error loading dashboard:", err);
@@ -161,16 +155,16 @@ router.post("/login", (req, res) => {
   authController.loginUser(req, res);
 });
 
-router.get("/eventrequest", (req, res) => {
+router.get("/eventrequest", isLoggedIn, (req, res) => {
   res.render("eventrequest");
 });
 
 router.post("/eventrequest", isLoggedIn, async (req, res) => {
   try {
     const { title, description } = req.body;
-    const requestedBy = req.user._id; // Now req.user exists
+    const requestedBy = req.user._id;
 
-    const eventRequest = new EventRequest({ title, description, requestedBy });
+    const eventRequest = new EventRequest({ title, description, requestedBy, college: req.user.college });
     await eventRequest.save();
 
     res.redirect("/student/events");
@@ -186,11 +180,9 @@ router.post("/:id/upvote", isLoggedIn, async (req, res) => {
 
     const userId = req.user._id.toString();
 
-    // no self upvote
     if (event.requestedBy.toString() === userId)
       return res.redirect("/student/events");
 
-    // check if already upvoted
     if (event.upvotedBy.some((u) => u.toString() === userId)) {
       return res.redirect("/student/events");
     }
@@ -208,7 +200,7 @@ router.post("/:id/upvote", isLoggedIn, async (req, res) => {
 
 router.get("/events", isLoggedIn, async (req, res) => {
   try {
-    const events = await EventRequest.find().populate(
+    const events = await EventRequest.find({ college: req.user.college }).populate(
       "requestedBy",
       "fullname"
     );
@@ -220,20 +212,26 @@ router.get("/events", isLoggedIn, async (req, res) => {
 
 router.get("/posts", isLoggedIn, async (req, res) => {
   try {
-    const posts = await Post.find().populate("author");
+    const posts = await Post.find().populate({
+      path: 'author',
+      match: { college: req.user.college }
+    });
     res.render("studenAlumPost", {
       user: req.user,
-      posts,
+      posts: posts.filter(p => p.author),
     });
   } catch (err) {
-    console.error("❌ Error loading dashboard:", err);
+    console.error("❌ Error loading posts:", err);
     res.status(500).send("Server Error");
   }
 });
 
 router.get("/referrals", isLoggedIn, async (req, res) => {
   const student = await Student.findById(req.user._id)
-    .populate('connections');
+    .populate({
+      path: 'connections',
+      match: { college: req.user.college }
+    });
 
   res.render("studentRef", {
     user: req.user,
@@ -245,13 +243,11 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 router.get("/map", isLoggedIn, async (req, res) => {
   try {
-    // 1. Fetch all alumni with a location specified to display in the sidebar
     const alumniData = await Alumni.find({
       _id: { $ne: req.user._id },
+      college: req.user.college
     });
 
-    // 2. Render the view immediately without location data for the map.
-    // The locations will be fetched via WebSocket after the page loads.
     res.render("map", {
       user: req.user,
       alumniList: alumniData,
@@ -259,34 +255,6 @@ router.get("/map", isLoggedIn, async (req, res) => {
   } catch (err) {
     console.error("Error loading alumni map page:", err)
     res.redirect('/student/dashboard');
-  }
-});
-
-
-
-router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
-  try {
-    const studentId = req.user._id;
-    const alumniId = req.params.alumniId;
-    const student = await Student.findById(studentId);
-    const alumni = await Alumni.findById(alumniId);
-    if (!student || !alumni) {
-      return res.status(404).json({ error: "User not found." });
-    }
-    if (student.sentRequests.includes(alumniId) || alumni.invitations.includes(studentId)) {
-      return res.status(400).json({ error: 'Connection request already sent.' });
-    }
-    if (student.connections.includes(alumniId) || alumni.connections.includes(studentId)) {
-      return res.status(400).json({ error: 'You are already connected.' });
-    }
-    student.sentRequests.push(alumniId);
-    alumni.invitations.push(studentId);
-    await student.save();
-    await alumni.save();
-    res.status(200).json({ message: 'Connection request sent successfully!' });
-  } catch (error) {
-    console.error("Error sending connection request:", error);
-    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -318,7 +286,6 @@ router.get('/profile', isLoggedIn, async (req, res) => {
   }
 });
 
-// POST route to update the profile information
 router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => {
   try {
     const student = await Student.findById(req.user._id);
@@ -328,22 +295,19 @@ router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => 
       return res.redirect('/student/login');
     }
 
-    // Update standard text fields
     student.fullname = req.body.fullname || student.fullname;
     student.contact = req.body.contact || student.contact;
-    student.branch = req.body.branch || student.branch; // Update branch
+    student.branch = req.body.branch || student.branch;
 
-    // Process and update interests from the hidden input
     if (req.body.interests) {
       student.interests = req.body.interests
-        .split(',') // Split the comma-separated string into an array
-        .map(interest => interest.trim()) // Trim whitespace from each item
-        .filter(interest => interest); // Remove any empty items
+        .split(',')
+        .map(interest => interest.trim())
+        .filter(interest => interest);
     } else {
-      student.interests = []; // Clear interests if the field is empty
+      student.interests = [];
     }
 
-    // Handle profile image upload
     if (req.file) {
       student.image = req.file.buffer;
     }
@@ -360,3 +324,4 @@ router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => 
 });
 
 module.exports = router;
+

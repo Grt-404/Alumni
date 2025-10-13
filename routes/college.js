@@ -4,6 +4,7 @@ const authController = require("../controllers/authController");
 const isLoggedIn = require("../middlewares/isLoggedin");
 const Alumni = require('../models/alumni-model');
 const Student = require("../models/student-model");
+const Job = require("../models/job-model");
 const multer = require("multer");
 const path = require("path");
 const alumniModel = require("../models/alumni-model")
@@ -36,9 +37,10 @@ router.post("/register", (req, res) => {
 router.get("/login", (req, res) => {
     res.render("login-college");
 });
-router.get("/dashboard",isLoggedIn, async (req, res) => {
-    const students = await studentModel.find();
-    const alumnis = await alumniModel.find();
+router.get("/dashboard", isLoggedIn, async (req, res) => {
+    // Filter students and alumni by the logged-in college's ID
+    const students = await studentModel.find({ college: req.user._id });
+    const alumnis = await alumniModel.find({ college: req.user._id });
     res.render("college/dashboard", { students, alumnis });
 })
 
@@ -49,15 +51,13 @@ router.post("/login", (req, res) => {
 
 
 
-router.get('/alumni',isLoggedIn, async (req, res) => {
+router.get('/alumni', isLoggedIn, async (req, res) => {
     try {
-        // Get filter criteria from the URL's query parameters
         const { search, department, year } = req.query;
 
-        // --- DATABASE LOGIC (Updated for your schema) ---
-        const filterQuery = { role: 'alumni' }; // Base query to only get alumni
+        // Base query to only get alumni from the logged-in college
+        const filterQuery = { role: 'alumni', college: req.user._id };
 
-        // Only add to query if search term is not empty
         if (search && search.trim() !== '') {
             filterQuery.$or = [
                 { name: { $regex: search.trim(), $options: 'i' } },
@@ -65,15 +65,11 @@ router.get('/alumni',isLoggedIn, async (req, res) => {
             ];
         }
 
-        // Only add to query if department is selected and not empty
         if (department && department.trim() !== '') {
-            // Searches the 'branch' field in your database
             filterQuery.branch = department;
         }
 
-        // Only add to query if year is a valid number
         if (year && !isNaN(parseInt(year))) {
-            // Searches the 'graduationYear' field
             filterQuery.graduationYear = parseInt(year);
         }
 
@@ -92,10 +88,10 @@ router.get('/alumni',isLoggedIn, async (req, res) => {
 });
 
 
-router.get("/upload/csv", (req, res) => {
+router.get("/upload/csv", isLoggedIn, (req, res) => {
     res.render("college/uploadcsv");
 });
-router.get("/upload/sheet", (req, res) => {
+router.get("/upload/sheet", isLoggedIn, (req, res) => {
     res.render("college/uploadsheet");
 });
 
@@ -103,7 +99,7 @@ router.get("/upload/sheet", (req, res) => {
 
 
 // CSV Upload Route
-router.post("/upload/csv", upload.single("alumni-csv"), async (req, res) => {
+router.post("/upload/csv", isLoggedIn, upload.single("alumni-csv"), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send("No file uploaded.");
@@ -111,9 +107,8 @@ router.post("/upload/csv", upload.single("alumni-csv"), async (req, res) => {
 
         const results = [];
 
-        // Convert buffer to readable stream
         const readable = new stream.Readable();
-        readable._read = () => { }; // no-op
+        readable._read = () => { };
         readable.push(req.file.buffer);
         readable.push(null);
 
@@ -122,25 +117,24 @@ router.post("/upload/csv", upload.single("alumni-csv"), async (req, res) => {
             .on("data", (data) => results.push(data))
             .on("end", async () => {
                 try {
-                    // Map CSV rows to Alumni schema
                     const alumniDocs = results.map(row => ({
                         role: "alumni",
                         name: row.name?.trim(),
                         email: row.email?.toLowerCase(),
-                        password: "default123", // ⚠️ hash in real system
+                        password: "default123",
                         branch: row.branch || "",
                         graduationYear: parseInt(row.graduationYear) || null,
                         currentCompany: row.currentCompany || "",
                         designation: row.designation || "",
                         location: row.location || "",
                         linkedin: row.linkedin || "",
-                        status: "Verified"
+                        status: "Verified",
+                        college: req.user._id // Associate with the logged-in college
                     }));
 
-                    // Upsert into MongoDB
                     for (let doc of alumniDocs) {
                         await Alumni.updateOne(
-                            { email: doc.email },
+                            { email: doc.email, college: req.user._id }, // Ensure uniqueness within the college
                             { $set: doc },
                             { upsert: true }
                         );
@@ -164,41 +158,38 @@ router.post("/upload/csv", upload.single("alumni-csv"), async (req, res) => {
 });
 
 
-router.post("/upload/sheet", upload.single("alumni-sheet"), async (req, res) => {
+router.post("/upload/sheet", isLoggedIn, upload.single("alumni-sheet"), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).send("No file uploaded.");
         }
 
-        // Read Excel buffer
         const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
-        const sheetName = workbook.SheetNames[0]; // take first sheet
+        const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
-        // Convert to JSON
         const rows = XLSX.utils.sheet_to_json(sheet);
 
-        // Map rows to Alumni schema
         const alumniDocs = rows
-            .filter(row => row.name && row.email) // skip invalid rows
+            .filter(row => row.name && row.email)
             .map(row => ({
                 role: "alumni",
                 name: row.name.trim(),
                 email: row.email.toLowerCase(),
-                password: "default123", // ⚠️ hash in real system
+                password: "default123",
                 branch: row.branch || "",
                 graduationYear: parseInt(row.graduationYear) || null,
                 currentCompany: row.currentCompany || "",
                 designation: row.designation || "",
                 location: row.location || "",
                 linkedin: row.linkedin || "",
-                status: "Verified"
+                status: "Verified",
+                college: req.user._id // Associate with the logged-in college
             }));
 
-        // Upsert in MongoDB
         for (let doc of alumniDocs) {
             await Alumni.updateOne(
-                { email: doc.email },
+                { email: doc.email, college: req.user._id }, // Ensure uniqueness within the college
                 { $set: doc },
                 { upsert: true }
             );
@@ -211,12 +202,13 @@ router.post("/upload/sheet", upload.single("alumni-sheet"), async (req, res) => 
     }
 });
 
-router.get('/download/csv', async (req, res) => {
+router.get('/download/csv', isLoggedIn, async (req, res) => {
     try {
-        const alumni = await Alumni.find({ role: 'alumni' }).lean();
+        // Find only alumni belonging to the logged-in college
+        const alumni = await Alumni.find({ role: 'alumni', college: req.user._id }).lean();
 
         if (alumni.length === 0) {
-            return res.status(404).send("No alumni data found");
+            return res.status(404).send("No alumni data found for your college");
         }
 
         const fields = ['name', 'email', 'password', 'branch', 'graduationYear', 'currentCompany', 'designation', 'location', 'linkedin', 'status'];
@@ -233,12 +225,13 @@ router.get('/download/csv', async (req, res) => {
     }
 });
 
-router.get('/download/excel', async (req, res) => {
+router.get('/download/excel', isLoggedIn, async (req, res) => {
     try {
-        const alumni = await Alumni.find({ role: 'alumni' }).lean();
+        // Find only alumni belonging to the logged-in college
+        const alumni = await Alumni.find({ role: 'alumni', college: req.user._id }).lean();
 
         if (alumni.length === 0) {
-            return res.status(404).send("No alumni data found");
+            return res.status(404).send("No alumni data found for your college");
         }
 
         const worksheet = XLSX.utils.json_to_sheet(alumni);
@@ -257,31 +250,31 @@ router.get('/download/excel', async (req, res) => {
     }
 });
 
-router.get('/jobs',isLoggedIn, (req, res) => {
+router.get('/jobIntern', isLoggedIn, async (req, res) => { // Renamed from '/jobs' to match your view
+    try {
+        // Find alumni IDs for the current college
+        const alumniFromCollege = await Alumni.find({ college: req.user._id }).select('_id');
+        const alumniIds = alumniFromCollege.map(a => a._id);
 
-    const sampleJobs = [
-        { title: 'Frontend Developer', company: 'Google', location: 'Bengaluru', type: 'Full-time', postedAgo: '2d ago' },
-        { title: 'Backend Engineering Intern', company: 'Microsoft', location: 'Remote', type: 'Internship', postedAgo: '5d ago' },
-        { title: 'Product Manager', company: 'Amazon', location: 'Pune', type: 'Full-time', postedAgo: '1w ago' },
-        { title: 'Data Analyst', company: 'Tata Consultancy Services', location: 'Ahmedabad', type: 'Full-time', postedAgo: '1w ago' },
-        { title: 'UX/UI Design Intern', company: 'Swiggy', location: 'Remote', type: 'Internship', postedAgo: '2w ago' },
-        { title: 'Cloud Solutions Architect', company: 'Oracle', location: 'Bengaluru', type: 'Contract', postedAgo: '3w ago' },
-    ];
+        // Find jobs posted by those alumni
+        const jobs = await Job.find({ postedBy: { $in: alumniIds } }).populate('postedBy', 'name');
 
-    res.render('college/jobIntern', {
-        jobs: sampleJobs
-    });
+        res.render('college/jobIntern', {
+            jobs: jobs
+        });
+    } catch (error) {
+        console.error("Error fetching jobs:", error);
+        res.status(500).send("Server Error");
+    }
 });
 
 
 router.get('/jobs/new', (req, res) => {
-
     res.send("This is the page to create a new job posting.");
 });
 
 
-router.get('/campaigns',isLoggedIn, (req, res) => {
-    // This is temporary data. You'll fetch this from your database later.
+router.get('/donations', isLoggedIn, (req, res) => { // Renamed from '/campaigns'
     const sampleCampaigns = [
         {
             title: 'Tech Lab Modernization',
@@ -297,17 +290,10 @@ router.get('/campaigns',isLoggedIn, (req, res) => {
             daysLeft: 60,
             imageUrl: 'https://newhorizonindia.edu/wp-content/uploads/2024/08/download-15-1024x683.png'
         },
-        {
-            title: 'Campus Green Initiative',
-            raised: 95000,
-            goal: 200000,
-            daysLeft: 30,
-            imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=800&q=80'
-        },
     ];
 
     const donationStats = {
-        totalRaised: 1155000,
+        totalRaised: 1060000,
         totalDonors: 478,
     };
 
@@ -321,13 +307,11 @@ router.get('/campaigns/new', (req, res) => {
 });
 
 
-router.get('/verification',isLoggedIn, async (req, res) => {
+router.get('/verification', isLoggedIn, async (req, res) => {
     try {
-        // Fetch all alumni with a 'Pending' status
-        const pendingAlumni = await Alumni.find({ status: 'Pending' });
-
-        // Fetch all students with a 'Pending' status
-        const pendingStudents = await Student.find({ status: 'Pending' });
+        // Fetch pending alumni & students for the logged-in college only
+        const pendingAlumni = await Alumni.find({ status: 'Pending', college: req.user._id });
+        const pendingStudents = await Student.find({ status: 'Pending', college: req.user._id });
 
         res.render('college/verification', {
             alumniRequests: pendingAlumni,
@@ -339,15 +323,16 @@ router.get('/verification',isLoggedIn, async (req, res) => {
     }
 });
 
-router.post('/verification/approve/:id', async (req, res) => {
+router.post('/verification/approve/:id', isLoggedIn, async (req, res) => {
     try {
         const { id } = req.params;
         const { role } = req.query;
 
+        // Ensure the college is only approving requests for their own college
         if (role === 'alumni') {
-            await Alumni.findByIdAndUpdate(id, { status: 'Verified' });
+            await Alumni.findOneAndUpdate({ _id: id, college: req.user._id }, { status: 'Verified' });
         } else if (role === 'student') {
-            await Student.findByIdAndUpdate(id, { status: 'Verified' });
+            await Student.findOneAndUpdate({ _id: id, college: req.user._id }, { status: 'Verified' });
         }
 
         console.log(`Approved ${role} with ID: ${id}`);
@@ -358,16 +343,16 @@ router.post('/verification/approve/:id', async (req, res) => {
     }
 });
 
-// POST route for rejecting a request
-router.post('/verification/reject/:id', async (req, res) => {
+router.post('/verification/reject/:id', isLoggedIn, async (req, res) => {
     try {
         const { id } = req.params;
         const { role } = req.query;
 
+        // Ensure the college is only rejecting requests for their own college
         if (role === 'alumni') {
-            await Alumni.findByIdAndUpdate(id, { status: 'Rejected' });
+            await Alumni.findOneAndUpdate({ _id: id, college: req.user._id }, { status: 'Rejected' });
         } else if (role === 'student') {
-            await Student.findByIdAndUpdate(id, { status: 'Rejected' });
+            await Student.findOneAndUpdate({ _id: id, college: req.user._id }, { status: 'Rejected' });
         }
 
         console.log(`Rejected ${role} with ID: ${id}`);

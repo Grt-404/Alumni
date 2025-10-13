@@ -15,7 +15,7 @@ const alumniSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
+        // Password is not required if linkedinId is present
     },
     linkedinId: { type: String },
     graduationYear: Number,
@@ -23,7 +23,8 @@ const alumniSchema = new Schema({
     currentCompany: { type: String, default: "" },
     designation: { type: String, default: "" },
     location: { type: String, default: "" },
-    bio: { type: String, maxlength: 500, default: "" },
+    // FIX: Removed maxlength validation to allow for longer LinkedIn bios
+    bio: { type: String, default: "" },
     linkedin: { type: String, default: "" },
     role: {
         type: String,
@@ -44,33 +45,33 @@ const alumniSchema = new Schema({
         enum: ['Pending', 'Verified', 'Rejected'],
         default: 'Pending'
     },
-
-    // --- NEW/UPDATED FIELDS FOR CONNECTIONS ---
-
-    // Stores IDs of students who have sent an invitation to this alumnus.
+    college: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'college'
+    },
     invitations: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "student" // Correctly referencing the 'student' model
+        ref: "student"
     }],
-
     points: {
         type: Number,
         default: 0,
         required: true
     },
-    // Stores IDs of students this alumnus is connected with.
     connections: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "student" // Correctly referencing the 'student' model
+        ref: "student"
     }]
 });
 
 
 alumniSchema.pre('validate', function (next) {
     if (this.linkedinId) {
+        // This makes the password field optional if a linkedinId exists
         this.$ignore('password');
     }
     next();
 });
 
 module.exports = mongoose.model("alumni", alumniSchema);
+

@@ -16,8 +16,15 @@ router.get("/login", (req, res) => {
 router.post("/login", (req, res) => {
     authController.loginUser(req, res);
 });
-router.get("/register", (req, res) => {
-    res.render("signup");
+router.get("/register", async (req, res) => {
+    try {
+        const colleges = await collegeModel.find({});
+        res.render("signup", { colleges });
+    } catch (error) {
+        console.error("Error fetching colleges for signup:", error);
+        req.flash('error', 'Cannot load registration page.');
+        res.redirect('/');
+    }
 });
 
 router.get('/auth/complete-profile', isLoggedin, authController.renderCompleteProfile);

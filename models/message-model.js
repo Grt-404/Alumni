@@ -29,6 +29,11 @@ const messageSchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: ['student', 'alumni']
+    },
+    college: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'college',
+        required: true
     }
 }, {
     // This option automatically adds `createdAt` and `updatedAt` fields

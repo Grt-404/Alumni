@@ -5,8 +5,13 @@ const eventSchema = new mongoose.Schema({
   description: { type: String },
   date: { type: Date, required: true },
   location: { type: String, default: 'Google Meet' },
-  gmeetLink: { type: String, required: true }, // Add this field
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  gmeetLink: { type: String, required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'alumni', required: true },
+  college: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'college',
+    required: true
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', eventSchema);

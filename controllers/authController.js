@@ -7,16 +7,15 @@ const axios = require('axios');
 const { fetchLinkedInProfile } = require('../utils/fetchLinkedinProfile');
 
 async function fetchImageBuffer(url) {
+    console.log(`Attempting to download image from: ${url}`);
     try {
         const response = await axios.get(url, { responseType: 'arraybuffer' });
         return Buffer.from(response.data, 'binary');
     } catch (error) {
-        console.warn(`Could not fetch LinkedIn profile image: ${error.message}`);
-        return null; 
+        console.error(`Failed to fetch image buffer from ${url}. Error: ${error.message}`);
+        return null;
     }
 }
-
-
 
 module.exports.loginUser = async function (req, res) {
     try {
@@ -31,7 +30,6 @@ module.exports.loginUser = async function (req, res) {
             return res.redirect("/login");
         }
 
-        
         if (user.role === "alumni" && user.linkedin) {
             console.log(`Login successful. Scraping profile before redirect...`);
             await scrapeAndEnrichProfile(user._id, user.linkedin);
@@ -53,14 +51,9 @@ module.exports.loginUser = async function (req, res) {
 
 module.exports.logout = function (req, res, next) {
     // Note: req.logout() is from passport, so we remove it for now.
-    res.cookie("token", ""); 
+    res.cookie("token", "");
     res.redirect('/');
 };
-
-
-
-
-// ...
 
 async function scrapeAndEnrichProfile(userId, profileUrl) {
     try {
@@ -69,25 +62,21 @@ async function scrapeAndEnrichProfile(userId, profileUrl) {
 
         if (scrapedData) {
             const updates = {
-                // Use the more accurate full name if available
                 name: scrapedData.fullName || undefined,
                 bio: scrapedData.summary,
                 location: scrapedData.geoFull,
             };
-            
-            // Get current position details
+
             if (scrapedData.positions && scrapedData.positions.length > 0) {
                 const currentPosition = scrapedData.positions[0];
                 updates.currentCompany = currentPosition.companyName;
                 updates.designation = currentPosition.title;
             }
 
-            // Get profile picture
             if (scrapedData.profilePicture) {
                 updates.image = await fetchImageBuffer(scrapedData.profilePicture);
             }
-            
-            // Update the user in the database
+
             await alumniModel.findByIdAndUpdate(userId, { $set: updates });
             console.log(`Successfully enriched profile for user: ${userId}`);
         }
@@ -96,11 +85,9 @@ async function scrapeAndEnrichProfile(userId, profileUrl) {
     }
 }
 
-
-
 module.exports.registerUser = async function (req, res) {
     try {
-        const { email, fullname, password, role, linkedin } = req.body;
+        const { email, fullname, password, role, linkedin, college } = req.body;
 
         let Model;
         if (role === "alumni") Model = alumniModel;
@@ -120,12 +107,12 @@ module.exports.registerUser = async function (req, res) {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
-        // Basic user data
         const userData = {
             email,
             password: hash,
             role,
-            points: 0 
+            points: 0,
+            college: college
         };
 
         if (role === "alumni") {
@@ -137,21 +124,24 @@ module.exports.registerUser = async function (req, res) {
             userData.fullname = fullname;
         }
 
-        
         const createdUser = await Model.create(userData);
 
-       
         if (role === "alumni" && createdUser.linkedin) {
             scrapeAndEnrichProfile(createdUser._id, createdUser.linkedin);
         }
 
-        
+        if ((role === 'student' || role === 'alumni') && college) {
+            const userRoleField = role === 'student' ? 'students' : 'alumni';
+            await collegeModel.findByIdAndUpdate(college, {
+                $push: { [userRoleField]: createdUser._id }
+            });
+        }
+
         const token = generateToken(createdUser);
         res.cookie("token", token);
         return res.redirect(`/${role}/dashboard`);
 
     } catch (err) {
-        
         console.error("Full registration error:", err);
         req.flash("error", "Server Error");
         return res.redirect("/register");
@@ -173,14 +163,13 @@ module.exports.handleLinkedInCallback = async (req, res) => {
     try {
         const { code, state } = req.query;
 
-        // --- Basic validation ---
         if (!code || !state) {
             console.error("LinkedIn callback missing code or state:", req.query);
             req.flash("error", "Invalid LinkedIn callback.");
             return res.redirect("/login");
         }
 
-        const role = state; // role should be 'alumni' or 'student'
+        const role = state;
         let Model;
 
         if (role === "alumni") Model = alumniModel;
@@ -191,7 +180,6 @@ module.exports.handleLinkedInCallback = async (req, res) => {
             return res.redirect("/login");
         }
 
-        // --- Exchange authorization code for access token ---
         const tokenResponse = await axios.post('https://www.linkedin.com/oauth/v2/accessToken', null, {
             params: {
                 grant_type: 'authorization_code',
@@ -206,19 +194,18 @@ module.exports.handleLinkedInCallback = async (req, res) => {
         const accessToken = tokenResponse.data.access_token;
         if (!accessToken) throw new Error("No access token received from LinkedIn");
 
-        // --- Fetch user profile from LinkedIn ---
         const userInfoResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
         const userInfo = userInfoResponse.data;
 
-        // --- Prepare profile data ---
         const profileData = {
             linkedinId: userInfo.sub,
             email: userInfo.email,
             role,
-            status: 'pending'
+            status: 'pending',
+            image: null
         };
 
         if (role === 'student') profileData.fullname = userInfo.name;
@@ -228,38 +215,31 @@ module.exports.handleLinkedInCallback = async (req, res) => {
             profileData.image = await fetchImageBuffer(userInfo.picture);
         }
 
-        // --- Check if user exists ---
         let user = await Model.findOne({ linkedinId: profileData.linkedinId });
 
         if (user) {
-            // Existing LinkedIn user: update profile
             if (role === 'student') user.fullname = profileData.fullname;
             else user.name = profileData.name;
 
             if (profileData.image) user.image = profileData.image;
             await user.save();
         } else {
-            // No LinkedIn ID found, check by email
             user = await Model.findOne({ email: profileData.email });
 
             if (user) {
-                // Link existing account with LinkedIn
                 user.linkedinId = profileData.linkedinId;
                 if (role === 'student') user.fullname = profileData.fullname;
                 else user.name = profileData.name;
                 if (profileData.image) user.image = profileData.image;
                 await user.save();
             } else {
-                // Brand new user: create account
                 user = await Model.create(profileData);
-                // Redirect new users to complete profile
                 const token = generateToken(user);
                 res.cookie("token", token);
                 return res.redirect('/auth/complete-profile');
             }
         }
 
-        // --- For existing users, log them in and redirect to dashboard ---
         const token = generateToken(user);
         res.cookie("token", token);
         return res.redirect(`/${role}/dashboard`);
@@ -271,14 +251,9 @@ module.exports.handleLinkedInCallback = async (req, res) => {
     }
 };
 
-
-
-
-
 module.exports.renderCompleteProfile = (req, res) => {
     res.render('complete-login', { user: req.user });
 };
-
 
 module.exports.completeProfile = async (req, res) => {
     try {
@@ -290,21 +265,18 @@ module.exports.completeProfile = async (req, res) => {
             return res.redirect('/login');
         }
 
-        // Hash and save the new password
         if (password) {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
         }
 
-        // If alumnus and linkedin URL is provided, save it and trigger scrape
         if (user.role === 'alumni' && linkedin) {
             user.linkedin = linkedin;
-            // Scrape in the background
             scrapeAndEnrichProfile(user._id, user.linkedin, user.role);
         }
 
         await user.save();
-        
+
         req.flash("success", "Your profile is complete!");
         res.redirect(`/${user.role}/dashboard`);
 

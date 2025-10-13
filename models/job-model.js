@@ -31,6 +31,11 @@ const jobSchema = new Schema({
         ref: "alumni",
         required: true
     },
+    college: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'college',
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
