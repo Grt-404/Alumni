@@ -39,12 +39,19 @@ const sessionMiddleware = expressSession({
 app.use(sessionMiddleware);
 app.use(flash());
 
+//Already Login Check
+
+const passUserToViews = require('./middlewares/passUserToViews');
+app.use(passUserToViews);
+
 // Routers
 app.use("/student", studentRouter);
 app.use("/alumni", alumniRouter);
 app.use("/college", collegeRouter);
 app.use('/', indexRouter);
 app.use('/post', postsRoutes);
+
+
 
 
 const initializeSocketHandlers = require('./utils/mapSocket');

@@ -114,23 +114,70 @@
     <div class="bg-gradient-to-b from-brand-petal via-brand-cream to-brand-cream">
         <!-- Header -->
         <header class="fixed w-full z-30 bg-brand-cream/80 backdrop-blur-lg border-b border-brand-petal">
-            <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-                <nav class="hidden md:flex flex-1 justify-start space-x-10 text-sm uppercase tracking-widest">
-                    <a href="#features" class="hover:text-brand-gold transition">Features</a>
-                    <a href="#mission" class="hover:text-brand-gold transition">Our Mission</a>
-                </nav>
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <a href="/" class="text-3xl font-serif tracking-wide text-brand-bark">Sampark</a>
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <nav class="hidden md:flex flex-1 justify-start space-x-10 text-sm uppercase tracking-widest">
+            <a href="#features" class="hover:text-brand-gold transition">Features</a>
+            <a href="#mission" class="hover:text-brand-gold transition">Our Mission</a>
+        </nav>
+
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <a href="/" class="text-3xl font-serif tracking-wide text-brand-bark">Sampark</a>
+        </div>
+
+        <nav class="hidden md:flex flex-1 justify-end items-center space-x-10 text-sm uppercase tracking-widest">
+            <a href="#testimonials" class="hover:text-brand-gold transition">Success Stories</a>
+
+            <% if (user) { %>
+                <div class="relative group">
+                    <div class="cursor-pointer">
+                        <% if (user.image) { %>
+                            <img
+                              src="data:image/jpeg;base64,<%= user.image.toString('base64') %>"
+                              alt="Profile Photo"
+                              class="h-10 w-10 rounded-full object-cover border-2 border-transparent group-hover:border-brand-gold transition"
+                            />
+                        <% } else { %>
+                            <div class="h-10 w-10 rounded-full flex items-center justify-center bg-brand-gold text-white text-lg font-bold border-2 border-transparent group-hover:border-brand-gold transition">
+                                <%= (user.name || user.fullname).charAt(0).toUpperCase() %>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <div class="absolute right-0 top-full pt-4 w-64 bg-white rounded-md shadow-lg p-2 origin-top-right
+                                invisible group-hover:visible transition-all duration-200 ease-out
+                                opacity-0 group-hover:opacity-100 transform scale-95 group-hover:scale-100 z-40">
+                        
+                        <div class="px-3 py-2 border-b border-gray-200 mb-2">
+                            <p class="font-bold text-gray-800 text-base normal-case tracking-normal truncate"><%= user.name || user.fullname %></p>
+                            <p class="text-sm text-gray-500 normal-case tracking-normal truncate"><%= user.email %></p>
+                        </div>
+                        
+                        <a href="/<%= user.role %>/dashboard" class="flex items-center w-full px-3 py-2 text-base text-gray-700 rounded-md hover:bg-brand-gold/10 hover:text-brand-gold transition-colors">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                            My Dashboard
+                        </a>
+
+                        <a href="/logout" class="flex items-center w-full px-3 py-2 text-base text-gray-700 rounded-md hover:bg-brand-gold/10 hover:text-brand-gold transition-colors">
+                            <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
+                            Logout
+                        </a>
+                    </div>
                 </div>
-                <nav class="hidden md:flex flex-1 justify-end space-x-10 text-sm uppercase tracking-widest">
-                    <a href="#testimonials" class="hover:text-brand-gold transition">Success Stories</a>
-                    <a href="/login" class="hover:text-brand-gold transition">Login</a>
-                </nav>
-                <div class="md:hidden flex-1 justify-end text-right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                </div>
-            </div>
-        </header>
+
+            <% } else { %>
+                <a href="/login" 
+                    class="inline-flex items-center justify-center gap-2 bg-brand-gold text-white font-semibold px-5 py-2.5 rounded-full hover:bg-yellow-700 transition-colors shadow-sm">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span>Login</span>
+                </a>
+            <% } %>
+            </nav>
+
+        <div class="md:hidden flex-1 justify-end text-right">
+            <i data-lucide="menu"></i>
+        </div>
+    </div>
+</header>
 
         <main>
             <!-- Hero Slider -->
@@ -142,7 +189,10 @@
                     <div class="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-6">
                         <h1 class="text-6xl md:text-8xl font-display mb-6 leading-tight">Your Future, Connected.</h1>
                         <p class="text-lg md:text-xl max-w-2xl mx-auto font-serif">Unlock your potential with an unparalleled network of mentors and leaders.</p>
-                        <a href="/register" class="btn bg-brand-gold text-white hover:bg-white hover:text-brand-gold border-brand-gold mt-8">Join The Network</a>
+                        <% if (!user) { %>
+                            <a href="/register" class="btn bg-brand-gold text-white hover:bg-white hover:text-brand-gold border-brand-gold mt-8">Join The Network</a>
+                        <% } %>
+                        
                     </div>
                 </div>
                 <!-- Slide 2 -->
@@ -152,7 +202,10 @@
                     <div class="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-6">
                         <h1 class="text-6xl md:text-8xl font-display mb-6 leading-tight">Legacy Meets Opportunity.</h1>
                         <p class="text-lg md:text-xl max-w-2xl mx-auto font-serif">Forge the connections that will define your career trajectory.</p>
-                        <a href="/register" class="btn bg-brand-gold text-white hover:bg-white hover:text-brand-gold border-brand-gold mt-8">Join Our Mission</a>
+                        <% if (!user) { %>
+                            <a href="/register" class="btn bg-brand-gold text-white hover:bg-white hover:text-brand-gold border-brand-gold mt-8">Join Our Mission</a>
+                        <% } %>
+                        
                     </div>
                 </div>
                 <button id="prev-slide" class="absolute z-20 left-4 md:left-10 top-1/2 -translate-y-1/2 w-12 h-12 text-white/70 hover:text-white transition"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
