@@ -39,8 +39,19 @@ const sessionMiddleware = expressSession({
 app.use(sessionMiddleware);
 app.use(flash());
 
-//Already Login Check
+// ===================================================
+// --- 1. MIDDLEWARE TO DISPLAY FLASH MESSAGES (ADDED) ---
+// ===================================================
+app.use((req, res, next) => {
+    // These variables will now be available in all your .ejs files
+    res.locals.success_msg = req.flash('success');
+    res.locals.error_msg = req.flash('error');
+    next();
+});
+// ===================================================
 
+
+//Already Login Check
 const passUserToViews = require('./middlewares/passUserToViews');
 app.use(passUserToViews);
 

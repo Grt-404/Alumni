@@ -1,0 +1,19 @@
+<% if (success_msg && success_msg.length > 0) { %>
+    <div id="flash-success" class="fixed top-24 right-5 z-50 flex items-center gap-4 w-full max-w-sm p-4 text-green-800 bg-green-100 rounded-lg shadow-lift" role="alert">
+        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+        <div class="ms-3 text-sm font-semibold"><%= success_msg[0] %></div>
+        <button type="button" onclick="document.getElementById('flash-success').style.display='none'" class="ms-auto -mx-1.5 -my-1.5 bg-green-100 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8" aria-label="Close">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+<% } %>
+
+<% if (error_msg && error_msg.length > 0) { %>
+    <div id="flash-error" class="fixed top-24 right-5 z-50 flex items-center gap-4 w-full max-w-sm p-4 text-red-800 bg-red-100 rounded-lg shadow-lift" role="alert">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        <div class="ms-3 text-sm font-semibold"><%= error_msg[0] %></div>
+        <button type="button" onclick="document.getElementById('flash-error').style.display='none'" class="ms-auto -mx-1.5 -my-1.5 bg-red-100 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8" aria-label="Close">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+<% } %>

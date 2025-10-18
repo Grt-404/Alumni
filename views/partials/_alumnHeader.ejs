@@ -1,0 +1,77 @@
+<header class="fixed top-0 inset-x-0 z-40 glass-header">
+      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div class="relative flex h-16 items-center justify-center">
+          <div class="absolute left-0 flex items-center">
+            <div class="relative hidden md:block">
+              <i
+                data-lucide="search"
+                class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
+              ></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search..."
+                class="w-64 rounded-md border border-border bg-white/50 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+          </div>
+          <div class="flex items-center">
+            <a href="/" class="text-3xl font-serif font-bold text-primary"
+              >SAMPARK</a
+            >
+          </div>
+          <div class="absolute right-0 flex items-center">
+            <a
+              href="/logout"
+              class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft flex items-center gap-2"
+            >
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="pt-16">
+      <nav class="bg-card border-b border-border px-4 py-2 sticky top-16 z-30">
+        <div class="max-w-screen-xl mx-auto flex justify-center items-center">
+          <div class="flex gap-4 overflow-x-auto">
+            <a
+              href="/alumni/dashboard"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="layout-dashboard"></i>Feed</a
+            >
+            <a
+              href="/alumni/leaderboard"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="trophy"></i>Leaderboard</a
+            >
+            <a
+              href="/alumni/network"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="users"></i>Network</a
+            >
+            <a
+              href="/alumni/jobs"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="briefcase"></i>Jobs</a
+            >
+            <a
+              href="/alumni/chat"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="message-square"></i>Messaging</a
+            >
+            <a
+              href="/alumni/event"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="calendar-plus"></i>Create Event</a
+            >
+            <a
+              href="/alumni/eventrequests"
+              class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              ><i data-lucide="calendar"></i>Event Requests</a
+            >
+          </div>
+        </div>
+      </nav>
