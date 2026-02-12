@@ -1,48 +1,86 @@
 <header class="fixed top-0 inset-x-0 z-40 glass-header">
-      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div class="relative flex h-16 items-center justify-center">
-          <div class="absolute left-0 flex items-center">
-            <div class="relative hidden md:block">
-              <i
-                data-lucide="search"
-                class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
-              ></i>
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="Search..."
-                class="w-64 rounded-md border border-border bg-white/50 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-            </div>
-          </div>
-          <div class="flex items-center">
-            <a href="/" class="text-3xl font-serif font-bold text-primary"
-              >SAMPARK</a
-            >
-          </div>
-          <div class="absolute right-0 flex items-center">
-            <a
-              href="/logout"
-              class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft flex items-center gap-2"
-            >
-              <i data-lucide="log-out" class="w-4 h-4"></i>
-              Logout
-            </a>
-          </div>
+  <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <div class="relative flex h-16 items-center justify-center">
+      <div class="absolute left-0 flex items-center">
+        <div class="relative hidden md:block">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search alumni..."
+            class="w-64 rounded-md border border-border bg-white/50 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+          />
         </div>
       </div>
-    </header>
+      <div class="flex items-center">
+        <a href="/student/dashboard" class="text-3xl font-serif font-bold text-primary tracking-tight">SAMPARK</a>
+      </div>
+      <div class="absolute right-0 flex items-center gap-4">
+        <a
+          href="/student/mentor-suggestions"
+          class="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all font-bold text-xs uppercase tracking-widest shadow-glow"
+        >
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          AI Matches
+        </a>
+
+        <a
+          href="/logout"
+          class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold shadow-soft flex items-center gap-2"
+        >
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Logout</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
 <main class="pt-16">
-      <nav class="bg-card border-b border-border px-4 py-2 sticky top-16 z-30">
-        <div class="max-w-screen-xl mx-auto flex justify-center items-center">
-          <div class="flex gap-4 overflow-x-auto">
-             <a href="/student/dashboard" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="layout-dashboard"></i>Dashboard</a>
-            <a href="/student/connections" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="users"></i>Connections</a>
-            <a href="/student/posts" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="newspaper"></i>Posts</a>
-            <a href="/student/referrals" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="handshake"></i>Ask for Referral</a>
-            <a href="/student/map" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="map"></i>Alumni Map</a>
-            <a href="/student/events" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="calendar"></i>Events</a>
-            <a href="/student/profile" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold"><i data-lucide="user-circle"></i>My Profile</a>
-          </div>
-        </div>
-      </nav>
+  <nav class="bg-card border-b border-border px-4 py-2 sticky top-16 z-30 overflow-hidden">
+    <div class="max-w-screen-xl mx-auto flex justify-center items-center">
+      <div class="flex gap-4 overflow-x-auto no-scrollbar pb-1">
+        <a href="/student/dashboard" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard
+        </a>
+        
+        <a href="/student/mentor-suggestions" class="nav-link lg:hidden flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-bold text-primary">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>AI Mentors
+        </a>
+
+        <a href="/student/connections" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="users" class="w-4 h-4"></i>Connections
+        </a>
+        <a href="/student/posts" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="newspaper" class="w-4 h-4"></i>Posts
+        </a>
+        <a href="/student/referrals" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="handshake" class="w-4 h-4"></i>Referrals
+        </a>
+        <a href="/student/map" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="map" class="w-4 h-4"></i>Alumni Map
+        </a>
+        <a href="/student/events" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="calendar" class="w-4 h-4"></i>Events
+        </a>
+        <a href="/student/profile" class="nav-link flex-shrink-0 flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors hover:text-primary">
+          <i data-lucide="user-circle" class="w-4 h-4"></i>My Profile
+        </a>
+      </div>
+    </div>
+  </nav>
+</main>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .nav-link {
+    color: #57534e;
+    position: relative;
+  }
+  .nav-link:hover {
+    color: #a16207;
+  }
+  /* Active state highlight could be added here via server-side logic */
+</style>

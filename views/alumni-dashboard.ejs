@@ -171,6 +171,38 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <!-- Left Column: Profile -->
           <aside class="lg:col-span-1 lg:sticky lg:top-36 self-start space-y-6">
+          <div class="bg-card rounded-xl shadow-soft p-6 animate-fade-in-up mt-6" style="animation-delay: 500ms">
+  <h3 class="text-xl font-serif text-foreground mb-4">
+    Referral Requests
+  </h3>
+  <div class="space-y-4">
+    <% if (typeof referrals !== 'undefined' && referrals.length > 0) { %> 
+      <% referrals.forEach((ref, index) => { %>
+        <div class="group pt-4 border-t border-border first:pt-0 first:border-none">
+          <div class="flex justify-between items-start">
+             <div>
+                <h4 class="font-serif font-semibold"><%= ref.student.fullname %></h4>
+                <p class="text-xs text-gray-500"><%= ref.student.branch %> '<%= ref.student.graduationYear %></p>
+             </div>
+             <a href="/alumni/referral/download/<%= ref._id %>" class="text-primary text-xs font-bold hover:underline flex items-center gap-1">
+                <i data-lucide="download" class="w-3 h-3"></i> Resume
+             </a>
+          </div>
+          
+          <div class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600">
+             <p><strong>For:</strong> <%= ref.company %></p>
+             <% if(ref.jobLink) { %>
+                <a href="<%= ref.jobLink %>" target="_blank" class="text-blue-600 hover:underline truncate block mt-1">Job Link</a>
+             <% } %>
+             <p class="mt-1 italic">"<%= ref.message %>"</p>
+          </div>
+        </div>
+      <% }) %> 
+    <% } else { %>
+      <p class="text-gray-500 text-sm">No pending referrals</p>
+    <% } %>
+  </div>
+</div>
             <div
               class="bg-card rounded-xl shadow-soft overflow-hidden animate-fade-in-up"
             >

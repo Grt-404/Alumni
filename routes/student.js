@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
+const Referral = require('../models/referral-model');
 const isLoggedIn = require("../middlewares/isLoggedin");
 const Post = require("../models/post-model");
 const Message = require('../models/message-model');
@@ -11,8 +12,65 @@ const Event = require("../models/event-model");
 const collegeModel = require('../models/college-model');
 const multer = require("multer");
 const upload = multer();
+const axios = require('axios');
 
+router.get("/mentor-suggestions", isLoggedIn, async (req, res) => {
+  try {
+    const student = await Student.findById(req.user._id);
+    const alumniList = await Alumni.find({ college: student.college, status: 'Verified' });
 
+    if (alumniList.length === 0) {
+      return res.render("suggestions", { recommendations: [] });
+    }
+
+    // Format data for the Python API
+    const payload = {
+      student: {
+        id: student._id.toString(),
+        Age: student.age,
+        Gender: student.gender,
+        Role: "Student",
+        Seniority_Level: "Entry",
+        Industry: student.industry,
+        Location_City: student.location,
+        Business_Interests: student.interests.join(" "),
+        Business_Objectives: student.objectives,
+        Constraints: student.constraints,
+        Company_Size_Employees: 0
+      },
+      alumni: alumniList.map(alum => ({
+        id: alum._id.toString(),
+        Age: alum.age,
+        Gender: alum.gender,
+        Role: alum.designation || "Professional",
+        Seniority_Level: alum.seniority,
+        Industry: alum.industry,
+        Location_City: alum.location,
+        Business_Interests: alum.bio,
+        Business_Objectives: alum.objectives,
+        Constraints: alum.constraints,
+        Company_Size_Employees: alum.companySize
+      }))
+    };
+
+    const response = await axios.post('http://127.0.0.1:8000/recommend', payload);
+
+    // Merge scores back to Alumni objects
+    const recommendations = alumniList.map(alum => {
+      const match = response.data.recommendations.find(r => r.alumni_id === alum._id.toString());
+      return {
+        ...alum._doc,
+        compatibilityScore: match ? match.compatibilityScore : 0
+      };
+    }).sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+
+    res.render("suggestions", { recommendations });
+
+  } catch (err) {
+    console.error("AI Error:", err.message);
+    res.redirect('/student/dashboard');
+  }
+});
 // ROUTE TO SEND A CONNECTION REQUEST
 router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
   try {
@@ -54,7 +112,37 @@ router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+router.post('/referral', isLoggedIn, upload.single('resume'), async (req, res) => {
+  try {
+    const { alumnus, company, jobLink, message } = req.body;
 
+    if (!req.file) {
+      req.flash('error', 'Please attach your resume (PDF or Docx).');
+      return res.redirect('/student/referrals');
+    }
+
+    const referral = new Referral({
+      student: req.user._id,
+      alumnus: alumnus,
+      company: company,
+      jobLink: jobLink,
+      message: message,
+      resume: req.file.buffer,
+      resumeMimeType: req.file.mimetype,
+      resumeName: req.file.originalname,
+      college: req.user.college
+    });
+
+    await referral.save();
+
+    req.flash('success', 'Referral request sent successfully!');
+    res.redirect('/student/dashboard');
+  } catch (error) {
+    console.error("Error sending referral:", error);
+    req.flash('error', 'Something went wrong. Please try again.');
+    res.redirect('/student/referrals');
+  }
+});
 router.get("/register", async (req, res) => {
   try {
     const colleges = await collegeModel.find({});
@@ -290,38 +378,33 @@ router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => 
   try {
     const student = await Student.findById(req.user._id);
 
-    if (!student) {
-      req.flash('error', 'Could not find your profile to update.');
-      return res.redirect('/student/login');
-    }
-
+    // Map basic info
     student.fullname = req.body.fullname || student.fullname;
     student.contact = req.body.contact || student.contact;
-    student.branch = req.body.branch || student.branch;
+    student.age = req.body.age || student.age;
+    student.gender = req.body.gender || student.gender;
+
+    // Map AI-specific fields
+    student.industry = req.body.industry || student.industry;
+    student.location = req.body.location || student.location;
+    student.objectives = req.body.objectives || student.objectives;
+    student.constraints = req.body.constraints || student.constraints;
 
     if (req.body.interests) {
-      student.interests = req.body.interests
-        .split(',')
-        .map(interest => interest.trim())
-        .filter(interest => interest);
-    } else {
-      student.interests = [];
+      student.interests = req.body.interests.split(',').map(i => i.trim());
     }
 
-    if (req.file) {
-      student.image = req.file.buffer;
-    }
+    if (req.file) student.image = req.file.buffer;
 
+    student.isProfileComplete = true; // Mark onboarding as done
     await student.save();
 
-    req.flash('success', 'Profile updated successfully!');
+    req.flash('success', 'Profile updated! AI Recommendations are now active.');
     res.redirect('/student/profile');
   } catch (err) {
-    console.error("Error updating profile:", err);
-    req.flash('error', 'An error occurred while updating your profile.');
+    console.error(err);
     res.redirect('/student/profile');
   }
 });
-
 module.exports = router;
 

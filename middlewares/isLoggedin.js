@@ -20,31 +20,37 @@ module.exports = async function (req, res, next) {
     else if (decoded.role === "student") Model = studentModel;
     else if (decoded.role === "college") Model = collegeModel;
     else {
-      // If the role is invalid, deny access.
       req.flash("error", "Invalid user role");
       return res.redirect("/");
     }
 
     // Find the user in the database using the email from the token.
-    // The full user document, including the 'college' ID, will be fetched.
-    const user = await Model.findOne({ email: decoded.email }).select(
-      "-password"
-    );
+    const user = await Model.findOne({ email: decoded.email }).select("-password");
 
-    // If no user is found with that email, the token is invalid.
     if (!user) {
       req.flash("error", "User not found");
       return res.redirect("/");
     }
 
-    // Attach the complete user object (including 'college' ID) to the request object.
-    // This makes it available to all subsequent routes.
+    // Attach the user object to the request.
     req.user = user;
+
+    // =========================================================
+    // MANDATORY ONBOARDING CHECK
+    // =========================================================
+    // If a student or alumnus hasn't completed their AI features, force redirect.
+    // We allow access if they are already on the completion page or trying to logout.
+    const isAuthRoute = req.path === '/auth/complete-profile' || req.path.includes('/logout');
+
+    if ((user.role === "student" || user.role === "alumni") && !user.isProfileComplete && !isAuthRoute) {
+      req.flash("info", "Please complete your profile to access the platform.");
+      return res.redirect("/auth/complete-profile");
+    }
+
     next();
   } catch (err) {
-    // Handle errors like an expired or malformed token.
-    console.error(err.message);
-    req.flash("error", "Something went wrong");
+    console.error("Middleware Error:", err.message);
+    req.flash("error", "Something went wrong with your session.");
     res.redirect("/");
   }
 };

@@ -62,7 +62,12 @@ app.use("/college", collegeRouter);
 app.use('/', indexRouter);
 app.use('/post', postsRoutes);
 
-
+// Quick migration to fill defaults for existing users
+const updateDefaults = async () => {
+    await studentModel.updateMany({}, { $set: { age: 20, objectives: "Career Growth" } });
+    await alumniModel.updateMany({}, { $set: { age: 30, seniority: "Senior", companySize: 1000 } });
+    console.log("Database migrated for AI features");
+};
 
 
 const initializeSocketHandlers = require('./utils/mapSocket');

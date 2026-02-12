@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Mentor Suggestions — SAMPARK</title>
+    <meta name="description" content="SAMPARK uses Siamese Neural Networks to match you with compatible alumni." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: "#f8f5f2",
+              foreground: "#1f1c18",
+              primary: "#a16207",
+              secondary: "#b99553",
+              border: "rgba(0, 0, 0, 0.08)",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ["Playfair Display", "serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      body {
+        background: linear-gradient(-45deg, #f8f5f2, #fffefc, #fef8f0, #f8f5f2);
+        background-size: 400% 400%;
+        animation: backgroundShift 25s ease infinite;
+      }
+      @keyframes backgroundShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+      #particle-canvas {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.6;
+      }
+      .card-hover {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 0 20px rgba(161, 98, 7, 0.1);
+      }
+      .score-gradient {
+        background: linear-gradient(135deg, #a16207 0%, #d4af37 100%);
+      }
+      .top-match-glow {
+        box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans antialiased text-foreground min-h-screen">
+    <canvas id="particle-canvas"></canvas>
+
+    <%- include('./partials/_studentHeader') %>
+    <%- include('./partials/_messages') %>
+
+    <main class="max-w-5xl mx-auto p-6 md:p-12">
+      <div class="mb-12 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.2em] mb-6 border border-primary/20">
+          <i data-lucide="cpu" class="w-3 h-3"></i> Neural Match Engine Live
+        </div>
+        <h2 class="text-5xl font-serif font-bold text-foreground tracking-tight">Your Mentor Matches</h2>
+        <p class="text-gray-500 mt-4 max-w-xl mx-auto leading-relaxed">
+          Our <strong>Siamese Neural Network</strong> has computed the compatibility between your profile and our alumni network. Connect with those who share your trajectory.
+        </p>
+      </div>
+      
+      <div class="grid gap-6">
+        <% if (recommendations && recommendations.length > 0) { %>
+          <% recommendations.forEach(alumnus => { %>
+            <div class="bg-white rounded-3xl p-1 shadow-sm border border-border card-hover <%= alumnus.compatibilityScore > 90 ? 'top-match-glow' : '' %>">
+              <div class="p-6 flex flex-col md:flex-row items-center justify-between gap-8">
+                
+                <div class="flex items-center gap-6 w-full">
+                  <div class="relative group">
+                    <% if (alumnus.image) { %>
+                        <img src="data:image/jpeg;base64,<%= alumnus.image.toString('base64') %>" class="w-24 h-24 rounded-2xl object-cover shadow-md" alt="Profile">
+                    <% } else { %>
+                        <div class="w-24 h-24 bg-stone-100 rounded-2xl flex items-center justify-center text-3xl font-serif font-bold text-primary border border-primary/10">
+                            <%= alumnus.name.charAt(0) %>
+                        </div>
+                    <% } %>
+                    
+                    <div class="absolute -top-3 -right-3 score-gradient text-white w-12 h-12 rounded-full flex flex-col items-center justify-center border-4 border-white shadow-lg">
+                      <span class="text-[10px] font-bold leading-none"><%= Math.round(alumnus.compatibilityScore) %>%</span>
+                      <span class="text-[7px] uppercase tracking-tighter opacity-80">Match</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-1">
+                      <h3 class="text-2xl font-serif font-bold text-foreground"><%= alumnus.name %></h3>
+                      <% if (alumnus.compatibilityScore > 85) { %>
+                        <span class="flex items-center gap-1 text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-green-200">
+                           <i data-lucide="zap" class="w-2 h-2"></i> Elite Match
+                        </span>
+                      <% } %>
+                    </div>
+                    
+                    <p class="text-primary font-semibold text-sm flex items-center gap-2">
+                      <%= alumnus.designation %> <span class="w-1 h-1 rounded-full bg-primary/30"></span> <%= alumnus.currentCompany %>
+                    </p>
+
+                    <div class="flex flex-wrap gap-3 mt-4">
+                      <div class="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <i data-lucide="briefcase" class="w-3 h-3"></i> <%= alumnus.industry %>
+                      </div>
+                      <div class="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <i data-lucide="award" class="w-3 h-3"></i> <%= alumnus.seniority %> Level
+                      </div>
+                      <div class="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        <i data-lucide="map-pin" class="w-3 h-3"></i> <%= alumnus.location %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-row md:flex-col gap-3 w-full md:w-44">
+                  <a href="/student/chat/<%= alumnus._id %>" class="flex-1 text-center py-3 bg-primary text-white rounded-2xl font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-md">
+                    Send Request
+                  </a>
+                  <a href="/student/alumnus/<%= alumnus._id %>" class="flex-1 text-center py-3 bg-white text-gray-600 rounded-2xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition-all">
+                    View Journey
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <div class="text-center py-24 bg-white rounded-[40px] shadow-sm border border-dashed border-primary/20">
+            <div class="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-8">
+              <i data-lucide="fingerprint" class="w-12 h-12 text-primary/30"></i>
+            </div>
+            <h3 class="text-2xl font-serif font-bold text-foreground">Waiting for Intelligence</h3>
+            <p class="text-gray-400 mt-3 max-w-sm mx-auto">We need more data to compute your matches. Please update your profile attributes.</p>
+            <a href="/student/profile" class="mt-8 inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-bold shadow-xl hover:shadow-primary/20 transition-all">
+               Update Profile <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+          </div>
+        <% } %>
+      </div>
+    </main>
+
+    <script>
+      lucide.createIcons();
+      
+      // Particle System Logic
+      const canvas = document.getElementById("particle-canvas");
+      const ctx = canvas.getContext("2d");
+      let particles = [];
+      const init = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        particles = [];
+        for (let i = 0; i < 30; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 2 + 1,
+            dx: (Math.random() - 0.5) * 0.5,
+            dy: (Math.random() - 0.5) * 0.5
+          });
+        }
+      };
+      const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(161, 98, 7, 0.2)";
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          p.x += p.dx; p.y += p.dy;
+          if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+        });
+        requestAnimationFrame(draw);
+      };
+      window.addEventListener('resize', init);
+      init(); draw();
+    </script>
+  </body>
+</html>

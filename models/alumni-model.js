@@ -1,75 +1,41 @@
 // models/alumni-model.js
-
 const { mongoose, Schema } = require('../config/mongoose-connection');
 
 const alumniSchema = new Schema({
-    name: {
-        type: String,
-        trim: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true
-    },
+    role: { type: String, default: 'alumni' },
+    name: String,
+    email: String,
+    contact: Number,
     password: {
         type: String,
+        required: function () { return !this.linkedinId; }
     },
-    linkedinId: { type: String },
+    image: { type: Buffer },
+    college: { type: mongoose.Schema.Types.ObjectId, ref: 'college' },
+    status: { type: String, enum: ['Pending', 'Verified', 'Rejected'], default: 'Pending' },
+    points: { type: Number, default: 0 },
+
+    // --- AI RECOMMENDER FIELDS ---
+    age: { type: Number, default: 25 },
+    gender: { type: String, enum: ["Male", "Female", "Other", "missing"], default: "missing" },
     graduationYear: Number,
     branch: String,
-    currentCompany: { type: String, default: "" },
-    designation: { type: String, default: "" },
-    location: { type: String, default: "" },
-    bio: { type: String, default: "" },
-    linkedin: { type: String, default: "" },
-    role: {
-        type: String,
-        enum: ["alumni", "student", "admin"],
-        default: "alumni"
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    image: Buffer,
-    posts: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post"
-    }],
-    status: {
-        type: String,
-        enum: ['Pending', 'Verified', 'Rejected'],
-        default: 'Pending'
-    },
-    college: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'college'
-    },
-    invitations: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "student"
-    }],
-    points: {
-        type: Number,
-        default: 0,
-        required: true
-    },
-    connections: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "student"
-    }]
-});
+    currentCompany: String,
+    designation: String,
 
-// THIS BLOCK HAS BEEN REMOVED
-/*
-alumniSchema.pre('validate', function (next) {
-    if (this.linkedinId) {
-        this.$ignore('password');
-    }
-    next();
+    // New fields for AI Alignment
+    seniority: { type: String, enum: ["Entry", "Mid", "Senior", "Director", "Executive"], default: "Mid" },
+    industry: { type: String, default: "Technology" },
+    location: { type: String, default: "Remote" },
+    companySize: { type: Number, default: 500 }, // Python: Company_Size_Employees
+    bio: { type: String, default: "" }, // Python: Business_Interests
+    objectives: { type: String, default: "Mentoring students" },
+    constraints: { type: String, default: "Weekends only" },
+
+    // --- NETWORKING ---
+    linkedin: { type: String, default: "" },
+    invitations: [{ type: mongoose.Schema.Types.ObjectId, ref: "student" }],
+    connections: [{ type: mongoose.Schema.Types.ObjectId, ref: "student" }],
 });
-*/
 
 module.exports = mongoose.model("alumni", alumniSchema);

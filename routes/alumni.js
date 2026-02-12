@@ -1,4 +1,5 @@
 const express = require("express");
+const Referral = require('../models/referral-model');
 const router = express.Router();
 const authController = require("../controllers/authController");
 const isLoggedIn = require("../middlewares/isLoggedin");
@@ -80,30 +81,53 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
     const user = req.user;
 
     const posts = await Post.find()
-      .populate({
-        path: 'author',
-        match: { college: req.user.college },
-        select: 'name currentCompany designation image'
-      })
+      .populate({ path: 'author', match: { college: req.user.college } })
       .sort({ createdAt: -1 });
 
     const requests = await EventRequest.find({ status: "pending", upvotes: { $gt: 4 } })
-      .populate({
-        path: 'requestedBy',
-        match: { college: req.user.college },
-        select: 'fullname'
-      })
+      .populate({ path: 'requestedBy', match: { college: req.user.college } })
       .sort({ createdAt: -1 })
       .limit(3);
 
-    res.render("alumni-dashboard", { user, posts: posts.filter(p => p.author), requests: requests.filter(r => r.requestedBy), invitations: alumni.invitations });
+    // --- NEW CODE: Fetch Pending Referrals ---
+    const referrals = await Referral.find({ alumnus: req.user._id, status: 'Pending' })
+      .populate('student', 'fullname branch graduationYear')
+      .sort({ createdAt: -1 });
+    // ----------------------------------------
+
+    // Pass 'referrals' to the view
+    res.render("alumni-dashboard", {
+      user,
+      posts: posts.filter(p => p.author),
+      requests: requests.filter(r => r.requestedBy),
+      invitations: alumni.invitations,
+      referrals: referrals // <--- Add this line
+    });
   } catch (err) {
     console.error(err);
-    req.flash?.("error", "Unable to load dashboard");
+    req.flash("error", "Unable to load dashboard");
     res.redirect("/");
   }
 });
 
+
+router.get('/referral/download/:id', isLoggedIn, async (req, res) => {
+  try {
+    const referral = await Referral.findById(req.params.id);
+
+    // Security check: ensure logged-in alumni owns this referral
+    if (!referral || referral.alumnus.toString() !== req.user._id.toString()) {
+      return res.status(403).send("Unauthorized access");
+    }
+
+    res.set('Content-Type', referral.resumeMimeType);
+    res.set('Content-Disposition', `attachment; filename="${referral.resumeName}"`);
+    res.send(referral.resume);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error downloading file");
+  }
+});
 // --- CONNECTION/INVITATION ROUTES ---
 
 router.post('/connections/respond/:studentId', isLoggedIn, isVerified, async (req, res) => {
@@ -208,44 +232,33 @@ router.get("/profile", isLoggedIn, isVerified, async (req, res) => {
   res.render("complete-profile", { alumni: req.user });
 });
 
-router.post(
-  "/profile",
-  isLoggedIn, isVerified,
-  upload.single("image"),
-  async (req, res) => {
-    try {
-      const alumni = await Alumni.findById(req.user._id);
+router.post("/profile", isLoggedIn, isVerified, upload.single("image"), async (req, res) => {
+  try {
+    const alumni = await Alumni.findById(req.user._id);
 
-      alumni.name = req.body.name || alumni.name;
-      alumni.graduationYear = req.body.graduationYear || alumni.graduationYear;
-      alumni.branch = req.body.branch || alumni.branch;
-      alumni.currentCompany = req.body.currentCompany || alumni.currentCompany;
-      alumni.designation = req.body.designation || alumni.designation;
-      alumni.location = req.body.location || alumni.location;
-      alumni.bio = req.body.bio || alumni.bio;
-      alumni.linkedin = req.body.linkedin || alumni.linkedin;
+    // Update existing fields
+    alumni.name = req.body.name || alumni.name;
+    alumni.age = req.body.age || alumni.age;
+    alumni.gender = req.body.gender || alumni.gender;
 
-      if (req.file) {
-        alumni.image = req.file.buffer;
-      }
+    // Add the new AI Alignment fields
+    alumni.seniority = req.body.seniority || alumni.seniority;
+    alumni.industry = req.body.industry || alumni.industry;
+    alumni.location = req.body.location || alumni.location;
+    alumni.companySize = req.body.companySize || alumni.companySize;
+    alumni.bio = req.body.bio || alumni.bio;
+    alumni.objectives = req.body.objectives || alumni.objectives;
+    alumni.constraints = req.body.constraints || alumni.constraints;
 
-      await alumni.save();
+    if (req.file) alumni.image = req.file.buffer;
 
-      await Alumni.findByIdAndUpdate(
-        req.user._id,
-        { $inc: { points: PROFILE_UPDATE_POINTS } }
-      );
-
-      req.flash("success", `Profile updated successfully and ${PROFILE_UPDATE_POINTS} points awarded!`);
-      res.redirect("/alumni/dashboard");
-    } catch (err) {
-      console.error(err);
-      req.flash("error", "Something went wrong while updating profile");
-      res.redirect("/alumni/dashboard");
-    }
+    await alumni.save();
+    res.redirect("/alumni/dashboard");
+  } catch (err) {
+    console.error(err);
+    res.redirect("/alumni/dashboard");
   }
-);
-
+});
 // --- EVENT ROUTES (EMAIL HELPER FUNCTION) ---
 
 async function sendEmails(title, description, link, collegeId) {
