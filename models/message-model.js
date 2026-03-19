@@ -6,25 +6,25 @@ const messageSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    // The user who sent the message
+
     from: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        refPath: 'fromModel' // Dynamic reference based on the 'fromModel' field
+        refPath: 'fromModel'
     },
-    // The user who received the message
+
     to: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        refPath: 'toModel' // Dynamic reference based on the 'toModel' field
+        refPath: 'toModel'
     },
-    // Specifies which model 'from' refers to ('student' or 'alumni')
+
     fromModel: {
         type: String,
         required: true,
         enum: ['student', 'alumni']
     },
-    // Specifies which model 'to' refers to ('student' or 'alumni')
+
     toModel: {
         type: String,
         required: true,
@@ -36,7 +36,7 @@ const messageSchema = new mongoose.Schema({
         required: true
     }
 }, {
-    // This option automatically adds `createdAt` and `updatedAt` fields
+
     timestamps: true
 });
 

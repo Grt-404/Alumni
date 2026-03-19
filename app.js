@@ -10,7 +10,6 @@ const flash = require("connect-flash");
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
 
-// --- Model Imports for Socket.IO Logic ---
 const Student = require('./models/student-model');
 const Alumni = require('./models/alumni-model');
 const Message = require('./models/message-model');
@@ -39,11 +38,7 @@ const sessionMiddleware = expressSession({
 app.use(sessionMiddleware);
 app.use(flash());
 
-// ===================================================
-// --- 1. MIDDLEWARE TO DISPLAY FLASH MESSAGES (ADDED) ---
-// ===================================================
 app.use((req, res, next) => {
-    // These variables will now be available in all your .ejs files
     res.locals.success_msg = req.flash('success');
     res.locals.error_msg = req.flash('error');
     next();
@@ -118,7 +113,7 @@ io.on('connection', (socket) => {
     const user = socket.user;
     const userId = user._id;
     const userRole = user.role;
-    const collegeId = user.college; // Get college ID from the authenticated user
+    const collegeId = user.college;
 
     onlineUsers.set(userId.toString(), socket.id);
     console.log(`SOCKET: User connected: ${userId} (Role: ${userRole}) from College: ${collegeId}`);

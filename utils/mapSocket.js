@@ -1,5 +1,5 @@
-const Alumni = require("../models/alumni-model"); // Adjust path if needed
-const axios = require("axios"); // Import axios
+const Alumni = require("../models/alumni-model");
+const axios = require("axios");
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -9,24 +9,24 @@ function initializeSocketHandlers(io) {
 
         socket.on('getAlumniLocations', async () => {
             try {
-                const alumniWithLocation = await Alumni.find({ 
-                    location: { $ne: "", $exists: true } 
+                const alumniWithLocation = await Alumni.find({
+                    location: { $ne: "", $exists: true }
                 });
 
-                const batchSize = 1; // Process one at a time to be safe
+                const batchSize = 1;
                 for (let i = 0; i < alumniWithLocation.length; i += batchSize) {
                     const batch = alumniWithLocation.slice(i, i + batchSize);
-                    
+
                     const locationPromises = batch.map(async (alumnus) => {
                         try {
-                            // NEW: Using the OpenCage Geocoding API
+
                             const apiKey = process.env.OPENCAGE_API_KEY;
                             if (!apiKey) {
                                 console.error("FATAL: OPENCAGE_API_KEY environment variable is not set.");
                                 return null;
                             }
                             const mapUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(alumnus.location)}&key=${apiKey}`;
-                            
+
                             const response = await axios.get(mapUrl, { timeout: 15000 });
                             const data = response.data;
 
@@ -55,12 +55,12 @@ function initializeSocketHandlers(io) {
                     });
 
                     const resolvedLocations = (await Promise.all(locationPromises)).filter(Boolean);
-                    
+
                     if (resolvedLocations.length > 0) {
                         socket.emit('alumniLocationBatch', resolvedLocations);
                     }
-                    
-                    await delay(1500); // A 1.5-second delay is safe for the free tier
+
+                    await delay(1500);
                 }
                 socket.emit('locationsFinished');
             } catch (error) {
@@ -68,8 +68,6 @@ function initializeSocketHandlers(io) {
                 socket.emit('locationError', { message: 'Failed to fetch locations.' });
             }
         });
-        
-        // --- Your other socket handlers (like chat) would go here ---
 
         socket.on('disconnect', () => {
             console.log('User disconnected');

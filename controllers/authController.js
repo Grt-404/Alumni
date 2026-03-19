@@ -1,4 +1,3 @@
-// controllers/authController.js
 const alumniModel = require("../models/alumni-model");
 const collegeModel = require("../models/college-model");
 const studentModel = require("../models/student-model");
@@ -18,23 +17,34 @@ async function fetchImageBuffer(url) {
 }
 
 const cookieOptions = {
-  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   httpOnly: true,
 };
 
 module.exports.loginUser = async function (req, res) {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
     let user =
-      (await alumniModel.findOne({ email })) ||
-      (await collegeModel.findOne({ email })) ||
-      (await studentModel.findOne({ email }));
+      (await alumniModel.findOne({ email: normalizedEmail })) ||
+      (await collegeModel.findOne({ email: normalizedEmail })) ||
+      (await studentModel.findOne({ email: normalizedEmail }));
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
+      console.warn(` Login failed: User not found with email ${normalizedEmail}`);
       req.flash("error", "Email or password is incorrect");
       return res.redirect("/login");
     }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      console.warn(`❌ Login failed: Password mismatch for ${normalizedEmail}`);
+      req.flash("error", "Email or password is incorrect");
+      return res.redirect("/login");
+    }
+
+    console.log(` Login successful for ${normalizedEmail} (${user.role})`);
 
     if (user.role === "alumni" && user.linkedin) {
       await scrapeAndEnrichProfile(user._id, user.linkedin);
@@ -43,14 +53,13 @@ module.exports.loginUser = async function (req, res) {
     let token = generateToken(user);
     res.cookie("token", token, cookieOptions);
 
-    // Redirect logic based on profile completion
-    if (user.role !== "college" && !user.isProfileComplete) {
+    if ((user.role === "student" || user.role === "alumni") && !user.isProfileComplete) {
       return res.redirect("/auth/complete-profile");
     }
 
     res.redirect(`/${user.role}/dashboard`);
   } catch (err) {
-    console.error("Login error:", err.message);
+    console.error("❌ Login error:", err.message);
     req.flash("error", "Server Error");
     return res.redirect("/login");
   }
@@ -91,6 +100,7 @@ async function scrapeAndEnrichProfile(userId, profileUrl) {
 module.exports.registerUser = async function (req, res) {
   try {
     const { email, fullname, password, role, linkedin, college } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
     let Model;
     if (role === "alumni") Model = alumniModel;
@@ -101,7 +111,7 @@ module.exports.registerUser = async function (req, res) {
       return res.redirect("/register");
     }
 
-    let existingUser = await Model.findOne({ email });
+    let existingUser = await Model.findOne({ email: normalizedEmail });
     if (existingUser) {
       req.flash("error", "Account already exists, please login");
       return res.redirect("/login");
@@ -111,19 +121,24 @@ module.exports.registerUser = async function (req, res) {
     const hash = await bcrypt.hash(password, salt);
 
     const userData = {
-      email,
+      email: normalizedEmail,
       password: hash,
-      role,
-      points: 0,
-      college: college,
-      isProfileComplete: false // Initialize as false for mandatory onboarding
+      role
     };
 
-    if (role === "alumni") {
-      userData.name = fullname;
-      if (linkedin) userData.linkedin = linkedin;
-    } else {
+    if (role === "college") {
       userData.fullname = fullname;
+    } else {
+      userData.points = 0;
+      userData.college = college;
+      userData.isProfileComplete = false;
+
+      if (role === "alumni") {
+        userData.name = fullname;
+        if (linkedin) userData.linkedin = linkedin;
+      } else {
+        userData.fullname = fullname;
+      }
     }
 
     const createdUser = await Model.create(userData);
@@ -142,8 +157,11 @@ module.exports.registerUser = async function (req, res) {
     const token = generateToken(createdUser);
     res.cookie("token", token, cookieOptions);
 
-    // Always redirect new students/alumni to complete profile
-    return res.redirect("/auth/complete-profile");
+    if (role === "student" || role === "alumni") {
+      return res.redirect("/auth/complete-profile");
+    }
+
+    return res.redirect(`/${role}/dashboard`);
   } catch (err) {
     console.error("Registration error:", err);
     req.flash("error", "Server Error");
@@ -186,11 +204,11 @@ module.exports.handleLinkedInCallback = async (req, res) => {
     );
     const userInfo = userInfoResponse.data;
 
-    let user = await Model.findOne({ $or: [{ linkedinId: userInfo.sub }, { email: userInfo.email }] });
+    let user = await Model.findOne({ $or: [{ linkedinId: userInfo.sub }, { email: userInfo.email.toLowerCase() }] });
 
     if (!user) {
       const profileData = {
-        email: userInfo.email,
+        email: userInfo.email.toLowerCase(),
         linkedinId: userInfo.sub,
         role,
         status: "Verified",
@@ -227,14 +245,10 @@ module.exports.renderCompleteProfile = async (req, res) => {
   }
 };
 
-/**
- * MANDATORY PROFILE COMPLETION
- * Processes AI features for the Siamese Recommender
- */
 module.exports.completeProfile = async (req, res) => {
   try {
     const {
-      password, linkedin, college, age, gender,
+      linkedin, college, age, gender,
       objectives, constraints, industry, seniority,
       companySize, branch, interests
     } = req.body;
@@ -243,12 +257,7 @@ module.exports.completeProfile = async (req, res) => {
     const user = await Model.findById(req.user._id);
 
     if (college) user.college = college;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-    }
 
-    // AI Recommender Features
     user.age = Number(age);
     user.gender = gender;
     user.objectives = objectives;
@@ -267,7 +276,7 @@ module.exports.completeProfile = async (req, res) => {
       }
     }
 
-    user.isProfileComplete = true; // Mark as done
+    user.isProfileComplete = true;
     await user.save();
 
     if (college) {
@@ -278,6 +287,8 @@ module.exports.completeProfile = async (req, res) => {
     req.flash("success", "Profile Complete! Explore your AI matches.");
     res.redirect(`/${user.role}/dashboard`);
   } catch (error) {
+    console.error("Profile completion error:", error);
+    req.flash("error", "Failed to complete profile. Please try again.");
     res.redirect("/auth/complete-profile");
   }
 };

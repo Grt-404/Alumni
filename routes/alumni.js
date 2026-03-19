@@ -21,7 +21,6 @@ const PROFILE_UPDATE_POINTS = 100;
 const JOB_POSTING_POINTS = 150;
 const POINTS_PER_DOLLAR = 100;
 
-// --- CHAT ROUTES ---
 
 router.get('/chat', isLoggedIn, isVerified, async (req, res) => {
   try {
@@ -89,19 +88,17 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(3);
 
-    // --- NEW CODE: Fetch Pending Referrals ---
+
     const referrals = await Referral.find({ alumnus: req.user._id, status: 'Pending' })
       .populate('student', 'fullname branch graduationYear')
       .sort({ createdAt: -1 });
-    // ----------------------------------------
 
-    // Pass 'referrals' to the view
     res.render("alumni-dashboard", {
       user,
       posts: posts.filter(p => p.author),
       requests: requests.filter(r => r.requestedBy),
       invitations: alumni.invitations,
-      referrals: referrals // <--- Add this line
+      referrals: referrals
     });
   } catch (err) {
     console.error(err);
@@ -115,7 +112,6 @@ router.get('/referral/download/:id', isLoggedIn, async (req, res) => {
   try {
     const referral = await Referral.findById(req.params.id);
 
-    // Security check: ensure logged-in alumni owns this referral
     if (!referral || referral.alumnus.toString() !== req.user._id.toString()) {
       return res.status(403).send("Unauthorized access");
     }
@@ -128,7 +124,6 @@ router.get('/referral/download/:id', isLoggedIn, async (req, res) => {
     res.status(500).send("Error downloading file");
   }
 });
-// --- CONNECTION/INVITATION ROUTES ---
 
 router.post('/connections/respond/:studentId', isLoggedIn, isVerified, async (req, res) => {
   try {
@@ -160,8 +155,6 @@ router.post('/connections/respond/:studentId', isLoggedIn, isVerified, async (re
     res.status(500).json({ error: "Server error." });
   }
 });
-
-// --- AUTH ROUTES ---
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -222,8 +215,6 @@ router.post("/login", (req, res) => {
   authController.loginUser(req, res);
 });
 
-// --- DONATE & PROFILE ROUTES ---
-
 router.get("/donate", isLoggedIn, isVerified, (req, res) => {
   res.render("donate");
 });
@@ -236,12 +227,12 @@ router.post("/profile", isLoggedIn, isVerified, upload.single("image"), async (r
   try {
     const alumni = await Alumni.findById(req.user._id);
 
-    // Update existing fields
+
     alumni.name = req.body.name || alumni.name;
     alumni.age = req.body.age || alumni.age;
     alumni.gender = req.body.gender || alumni.gender;
 
-    // Add the new AI Alignment fields
+
     alumni.seniority = req.body.seniority || alumni.seniority;
     alumni.industry = req.body.industry || alumni.industry;
     alumni.location = req.body.location || alumni.location;
@@ -259,7 +250,7 @@ router.post("/profile", isLoggedIn, isVerified, upload.single("image"), async (r
     res.redirect("/alumni/dashboard");
   }
 });
-// --- EVENT ROUTES (EMAIL HELPER FUNCTION) ---
+
 
 async function sendEmails(title, description, link, collegeId) {
   try {
@@ -363,10 +354,10 @@ router.post("/event", isLoggedIn, isVerified, async (req, res) => {
       { $inc: { points: EVENT_CREATION_POINTS } }
     );
 
+    await sendEmails(title, description, gmeetLink, req.user.college);
+
     req.flash("success", `Event created and ${EVENT_CREATION_POINTS} points awarded!`);
     res.redirect("/alumni/dashboard");
-
-    await sendEmails(title, description, gmeetLink, req.user.college);
   } catch (error) {
     console.error(error);
     req.flash("error", "Error creating event.");
@@ -432,7 +423,6 @@ router.post("/eventrequests/create-event/:id", isLoggedIn, isVerified, async (re
   }
 });
 
-// --- NETWORK ROUTES ---
 
 router.get('/network', isLoggedIn, isVerified, async (req, res) => {
   try {
@@ -471,7 +461,6 @@ router.get('/network', isLoggedIn, isVerified, async (req, res) => {
   }
 });
 
-// --- JOB ROUTES ---
 
 router.get('/jobs', isLoggedIn, isVerified, async (req, res) => {
   try {

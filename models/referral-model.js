@@ -14,10 +14,9 @@ const referralSchema = new mongoose.Schema({
     company: { type: String, required: true },
     jobLink: { type: String },
     message: { type: String },
-    // We store the file as a Buffer (binary data) directly in Mongo
     resume: { type: Buffer, required: true },
-    resumeMimeType: { type: String }, // e.g., 'application/pdf'
-    resumeName: { type: String },     // e.g., 'resume.pdf'
+    resumeMimeType: { type: String },
+    resumeName: { type: String },
     status: {
         type: String,
         enum: ['Pending', 'Reviewed', 'Accepted', 'Rejected'],

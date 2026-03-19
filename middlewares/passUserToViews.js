@@ -4,7 +4,7 @@ const studentModel = require('../models/student-model');
 const collegeModel = require('../models/college-model');
 
 async function passUserToViews(req, res, next) {
-    res.locals.user = null; // Start with no user
+    res.locals.user = null;
     try {
         const token = req.cookies.token;
         if (token) {
@@ -17,15 +17,15 @@ async function passUserToViews(req, res, next) {
             if (Model) {
                 const user = await Model.findById(decoded.id).select("-password");
                 if (user) {
-                    res.locals.user = user; // Make user object available in all EJS files
+                    res.locals.user = user;
                 }
             }
         }
     } catch (err) {
-        // If token is invalid or expired, just ignore it
+
         console.warn("PassUserToViews Middleware: Invalid or expired token.");
     }
-    next(); // Continue to the next route
+    next();
 }
 
 module.exports = passUserToViews;

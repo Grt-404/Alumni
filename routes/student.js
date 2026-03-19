@@ -23,7 +23,6 @@ router.get("/mentor-suggestions", isLoggedIn, async (req, res) => {
       return res.render("suggestions", { recommendations: [] });
     }
 
-    // Format data for the Python API
     const payload = {
       student: {
         id: student._id.toString(),
@@ -55,7 +54,6 @@ router.get("/mentor-suggestions", isLoggedIn, async (req, res) => {
 
     const response = await axios.post('http://127.0.0.1:8000/recommend', payload);
 
-    // Merge scores back to Alumni objects
     const recommendations = alumniList.map(alum => {
       const match = response.data.recommendations.find(r => r.alumni_id === alum._id.toString());
       return {
@@ -71,7 +69,7 @@ router.get("/mentor-suggestions", isLoggedIn, async (req, res) => {
     res.redirect('/student/dashboard');
   }
 });
-// ROUTE TO SEND A CONNECTION REQUEST
+
 router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
   try {
     const studentId = req.user._id;
@@ -87,7 +85,6 @@ router.post('/connect/:alumniId', isLoggedIn, async (req, res) => {
       return res.status(404).json({ error: "Alumni not found." });
     }
 
-    // Ensure both users are from the same college
     if (student.college.toString() !== alumni.college.toString()) {
       return res.status(403).json({ error: "You can only connect with alumni from your own college." });
     }
@@ -222,11 +219,59 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
       match: { college: req.user.college }
     }).sort({ date: 1 }).limit(3);
 
+    let recommendations = [];
+    if (req.user.interests && req.user.interests.length > 0) {
+      try {
+        const payload = {
+          student: {
+            id: req.user._id.toString(),
+            Age: req.user.age,
+            Gender: req.user.gender,
+            Role: "Student",
+            Seniority_Level: "Entry",
+            Industry: req.user.industry,
+            Location_City: req.user.location,
+            Business_Interests: req.user.interests.join(" "),
+            Business_Objectives: req.user.objectives,
+            Constraints: req.user.constraints,
+            Company_Size_Employees: 0
+          },
+          alumni: AlumniList.map(alum => ({
+            id: alum._id.toString(),
+            Age: alum.age,
+            Gender: alum.gender,
+            Role: alum.designation || "Professional",
+            Seniority_Level: alum.seniority,
+            Industry: alum.industry,
+            Location_City: alum.location,
+            Business_Interests: alum.bio,
+            Business_Objectives: alum.objectives,
+            Constraints: alum.constraints,
+            Company_Size_Employees: alum.companySize
+          }))
+        };
+
+        const response = await axios.post('http://127.0.0.1:8000/recommend', payload);
+
+        recommendations = AlumniList.map(alum => {
+          const match = response.data.recommendations.find(r => r.alumni_id === alum._id.toString());
+          return {
+            ...alum._doc,
+            compatibilityScore: match ? match.compatibilityScore : 0
+          };
+        }).sort((a, b) => b.compatibilityScore - a.compatibilityScore).slice(0, 3);
+      } catch (aiErr) {
+        console.warn("⚠️ AI recommendations unavailable, using fallback alumni:", aiErr.message);
+        recommendations = AlumniList.slice(0, 3);
+      }
+    }
+
     res.render("student-dashboard", {
       user: req.user,
       posts: posts.filter(p => p.author),
       AlumniList,
-      events: events.filter(e => e.createdBy)
+      events: events.filter(e => e.createdBy),
+      recommendations
     });
   } catch (err) {
     console.error("❌ Error loading dashboard:", err);
@@ -378,13 +423,11 @@ router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => 
   try {
     const student = await Student.findById(req.user._id);
 
-    // Map basic info
     student.fullname = req.body.fullname || student.fullname;
     student.contact = req.body.contact || student.contact;
     student.age = req.body.age || student.age;
     student.gender = req.body.gender || student.gender;
 
-    // Map AI-specific fields
     student.industry = req.body.industry || student.industry;
     student.location = req.body.location || student.location;
     student.objectives = req.body.objectives || student.objectives;
@@ -396,7 +439,7 @@ router.post('/profile', isLoggedIn, upload.single('image'), async (req, res) => 
 
     if (req.file) student.image = req.file.buffer;
 
-    student.isProfileComplete = true; // Mark onboarding as done
+    student.isProfileComplete = true;
     await student.save();
 
     req.flash('success', 'Profile updated! AI Recommendations are now active.');
